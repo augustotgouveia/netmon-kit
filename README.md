@@ -12,6 +12,19 @@ Wi-Fi, câmeras, estações e a VPS do sistema de vendas. Tudo aparece num paine
 
 Licença **MIT**: use, adapte e venda serviço em cima à vontade; só mantenha o aviso de autoria.
 
+## Como fica
+
+![Histórico de banda, saturação da LAN, CPU/memória do roteador e sinal do rádio](imagens/historico.png)
+
+![Mapa de enlaces: internet, roteador, APs, DVRs e rádios, com a banda ao vivo](imagens/mapa.png)
+
+<p>
+  <img src="imagens/fluxo-internet.png" alt="Fluxo da internet até a rede local, com a banda ao vivo" width="49%">
+  <img src="imagens/roteador-e-enlace.png" alt="CPU, memória, saturação, DHCP e NAT do roteador e o enlace de rádio" width="49%">
+</p>
+
+<sub>Prints da instalação piloto, com nomes, endereços e a localização removidos.</sub>
+
 ---
 
 ## O que ele vigia
