@@ -1,0 +1,26 @@
+# MODELO: um bloco por canal de DVR. Usuario de SO LEITURA no DVR (padrao ouro: view-user).
+api:
+  listen: ":1984"
+webrtc:
+  listen: ":8555"
+log:
+  level: warn
+streams:
+  cam01: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=1&subtype=0"
+  cam01_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=1&subtype=1"
+  cam02: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=2&subtype=0"
+  cam02_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=2&subtype=1"
+  cam03: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=3&subtype=0"
+  cam03_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=3&subtype=1"
+  cam04: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=4&subtype=0"
+  cam04_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=4&subtype=1"
+  cam05: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=5&subtype=0"
+  cam05_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=5&subtype=1"
+  cam06: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=6&subtype=0"
+  cam06_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=6&subtype=1"
+  cam07: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=7&subtype=0"
+  cam07_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=7&subtype=1"
+  cam08: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=8&subtype=0"
+  cam08_sd: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=8&subtype=1"
+  cam09: "rtsp://USUARIO:SENHA@192.168.0.138:554/cam/realmonitor?channel=9&subtype=0"
+# ... (repetir por canal)

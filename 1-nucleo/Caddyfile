@@ -1,0 +1,11 @@
+{
+	auto_https disable_redirects
+}
+# troque empresa.local pelo dominio interno do cliente (o mesmo do dns.json)
+https://noc, https://noc.empresa.local {
+	tls internal
+	handle_path /go2/* {
+		reverse_proxy 127.0.0.1:1984
+	}
+	reverse_proxy 127.0.0.1:8787
+}

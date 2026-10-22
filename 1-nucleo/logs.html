@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log — NOC Rede {{SITE}}</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121821; --panel2:#0e141c; --line:#1e2733;
+    --ink:#e6edf3; --mut:#8b98a8; --acc:#37b6ff; --ok:#36d399; --warn:#fbbd23; --bad:#f87272;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px 14px 60px}
+  h1{font-size:19px;margin:0 0 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  h1 .sp{flex:1}
+  h1 a{font-size:12px;color:var(--mut);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-weight:400}
+  h1 a:hover{color:var(--ink);border-color:var(--acc)}
+  .bar{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg) 82%,transparent);
+       display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 0 12px}
+  label.f{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mut)}
+  select,input[type=text]{background:var(--panel);color:var(--ink);border:1px solid var(--line);
+       border-radius:8px;padding:6px 9px;font:inherit;min-height:32px}
+  input[type=text]{min-width:200px}
+  select:focus,input:focus{outline:none;border-color:var(--acc)}
+  .chips{display:flex;gap:5px}
+  .chip{cursor:pointer;user-select:none;border:1px solid var(--line);background:var(--panel);
+        border-radius:999px;padding:5px 11px;font-size:12px;color:var(--mut);white-space:nowrap}
+  .chip.on{color:var(--ink)}
+  .chip.on.alert{border-color:var(--bad);background:rgba(248,114,114,.14);color:#ffd7d7}
+  .chip.on.warn{border-color:var(--warn);background:rgba(251,189,35,.14);color:#ffe9b3}
+  .chip.on.ok{border-color:var(--ok);background:rgba(54,211,153,.14);color:#c7f6e4}
+  button{cursor:pointer;background:var(--acc);color:#04121e;border:0;border-radius:8px;padding:7px 14px;font:inherit;font-weight:600;min-height:32px}
+  button.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line);font-weight:400}
+  .auto{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut)}
+  .count{color:var(--mut);font-size:12px;margin:2px 0 8px}
+  .count b{color:var(--ink)}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  td.t{white-space:nowrap;color:var(--mut);font-family:ui-monospace,Consolas,monospace}
+  td.msg{width:100%}
+  .lv{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+  .lv.alert{color:var(--bad);border-color:rgba(248,114,114,.5);background:rgba(248,114,114,.08)}
+  .lv.warn{color:var(--warn);border-color:rgba(251,189,35,.5);background:rgba(251,189,35,.08)}
+  .lv.ok{color:var(--ok);border-color:rgba(54,211,153,.5);background:rgba(54,211,153,.08)}
+  .key{font-family:ui-monospace,Consolas,monospace;color:var(--acc);font-size:11.5px;white-space:nowrap}
+  tr.muted td{opacity:.6}
+  .mtag{font-size:10px;color:var(--mut);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:6px}
+  pre{margin:0;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+      overflow:auto;font:12px/1.5 ui-monospace,Consolas,Menlo,monospace;color:#cbd5e1;white-space:pre-wrap;max-height:72vh}
+  .empty{padding:26px;text-align:center;color:var(--mut)}
+  #evfilters{display:contents}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📜 Log &mdash; NOC Rede {{SITE}} <span class="sp"></span>
+    <a href="/">← Painel</a><a href="/cameras">Mural</a></h1>
+
+  <div class="bar">
+    <label class="f">Fonte
+      <select id="src">
+        <option value="events">Eventos (alertas)</option>
+        <option value="err">Erros do NetMon (err.log)</option>
+        <option value="watchdog">Watchdog</option>
+        <option value="tg">Telegram</option>
+      </select>
+    </label>
+    <div id="evfilters">
+      <label class="f">Nível
+        <div class="chips" id="levels">
+          <span class="chip on alert" data-lv="alert">🔴 Alerta</span>
+          <span class="chip on warn" data-lv="warn">🟡 Aviso</span>
+          <span class="chip on ok" data-lv="ok">🟢 OK</span>
+        </div>
+      </label>
+      <label class="f">Categoria
+        <select id="cat"><option value="">todas</option></select>
+      </label>
+      <label class="f">Período
+        <select id="range">
+          <option value="1h">1 hora</option>
+          <option value="6h">6 horas</option>
+          <option value="24h" selected>24 horas</option>
+          <option value="7d">7 dias</option>
+          <option value="30d">30 dias</option>
+          <option value="all">tudo</option>
+        </select>
+      </label>
+      <label class="f">Busca (texto)
+        <input type="text" id="q" placeholder="mensagem ou key…">
+      </label>
+    </div>
+    <label class="f">Limite
+      <select id="limit">
+        <option value="100">100</option>
+        <option value="300" selected>300</option>
+        <option value="1000">1000</option>
+        <option value="2000">2000</option>
+      </select>
+    </label>
+    <label class="f">&nbsp;<button id="go">Atualizar</button></label>
+    <label class="f">&nbsp;<span class="auto"><input type="checkbox" id="auto"> auto 10s</span></label>
+  </div>
+
+  <div class="count" id="count">carregando…</div>
+  <div id="out"></div>
+</div>
+
+<script>
+  var CATLABEL = {cisco:"Cisco/roteador", cpu:"CPU", mem:"Memória", lan:"Saturação LAN",
+    inet:"Internet", ant:"Enlace/antenas", host:"Hosts vigiados", mapnode:"Nós do mapa",
+    dvr:"DVRs (RTSP)", hdd:"HD dos DVRs", reboot:"Reboot de DVR"};
+  var $ = function(id){ return document.getElementById(id); };
+  var levelSet = {alert:true, warn:true, ok:true};
+  var timer = null;
+
+  function activeLevels(){ return Object.keys(levelSet).filter(function(k){ return levelSet[k]; }); }
+
+  function qstr(){
+    var p = new URLSearchParams();
+    var src = $("src").value; p.set("src", src);
+    p.set("limit", $("limit").value);
+    if(src === "events"){
+      var lv = activeLevels();
+      if(lv.length && lv.length < 3) p.set("level", lv.join(","));
+      if($("cat").value) p.set("cat", $("cat").value);
+      var rg = $("range").value; if(rg && rg !== "all") p.set("range", rg);
+      else if(rg === "all") p.set("range", "all");
+      if($("q").value.trim()) p.set("q", $("q").value.trim());
+    }
+    return p.toString();
+  }
+
+  function fmt(ts){
+    var d = new Date(ts*1000), z = function(n){ return (n<10?"0":"")+n; };
+    return z(d.getDate())+"/"+z(d.getMonth()+1)+" "+z(d.getHours())+":"+z(d.getMinutes())+":"+z(d.getSeconds());
+  }
+  function esc(s){ return (s==null?"":String(s)).replace(/[&<>]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+  function catOf(k){ return (k||"").split(":")[0]; }
+
+  function fillCats(cats){
+    var sel = $("cat"), cur = sel.value;
+    var opts = '<option value="">todas</option>';
+    (cats||[]).forEach(function(c){
+      var lbl = CATLABEL[c] || c;
+      opts += '<option value="'+esc(c)+'">'+esc(lbl)+'</option>';
+    });
+    sel.innerHTML = opts; sel.value = cur;
+  }
+
+  function renderEvents(data){
+    fillCats(data.cats);
+    var rows = data.rows || [];
+    $("count").innerHTML = '<b>'+rows.length+'</b> eventos'+(rows.length>=2000?' (limite atingido — refine o filtro)':'');
+    if(!rows.length){ $("out").innerHTML = '<div class="empty">Nenhum evento com esses filtros.</div>'; return; }
+    var h = '<div class="scroll"><table><thead><tr><th>Hora</th><th>Nível</th><th>Categoria</th><th>Mensagem</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      h += '<tr class="'+(r.muted?"muted":"")+'">'+
+        '<td class="t">'+fmt(r.ts)+'</td>'+
+        '<td><span class="lv '+esc(r.level)+'">'+esc(r.level)+'</span></td>'+
+        '<td><span class="key">'+esc(r.key)+'</span></td>'+
+        '<td class="msg">'+esc(r.msg)+(r.muted?'<span class="mtag">🔇 congelado</span>':'')+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    $("out").innerHTML = h;
+  }
+
+  function renderText(data){
+    $("count").innerHTML = '<b>'+data.lines+'</b> linhas (de '+data.total+') — '+esc(data.src);
+    $("out").innerHTML = data.text ? '<pre>'+esc(data.text)+'</pre>' : '<div class="empty">Log vazio.</div>';
+  }
+
+  function load(){
+    var src = $("src").value;
+    fetch("/api/logs?"+qstr(), {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(data){
+      if(data.src === "events") renderEvents(data); else renderText(data);
+    }).catch(function(e){ $("count").textContent = "erro ao carregar: "+e; });
+  }
+
+  function syncMode(){
+    $("evfilters").style.display = ($("src").value === "events") ? "contents" : "none";
+  }
+  function setAuto(){
+    if(timer){ clearInterval(timer); timer = null; }
+    if($("auto").checked) timer = setInterval(load, 10000);
+  }
+
+  // eventos de UI
+  $("levels").addEventListener("click", function(e){
+    var c = e.target.closest(".chip"); if(!c) return;
+    var lv = c.dataset.lv; levelSet[lv] = !levelSet[lv];
+    c.classList.toggle("on", levelSet[lv]); load();
+  });
+  ["src","cat","range","limit"].forEach(function(id){ $(id).addEventListener("change", function(){ if(id==="src") syncMode(); load(); }); });
+  $("go").addEventListener("click", load);
+  $("auto").addEventListener("change", setAuto);
+  var qtmr=null;
+  $("q").addEventListener("input", function(){ clearTimeout(qtmr); qtmr = setTimeout(load, 350); });
+
+  syncMode(); load();
+</script>
+</body>
+</html>

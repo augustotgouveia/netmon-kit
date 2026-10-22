@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Consultas DNS por host — NOC {{SITE}}</title>
+<style>
+  :root{--bg:#0b0f14;--panel:#121821;--panel2:#0e141c;--line:#1e2733;--ink:#e6edf3;--mut:#8b98a8;--acc:#37b6ff;--ok:#36d399;--teal:#2ee6a6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px 14px 70px}
+  h1{font-size:19px;margin:0 0 12px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  h1 .sp{flex:1}
+  h1 a{font-size:12px;color:var(--mut);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-weight:400}
+  h1 a:hover{color:var(--ink);border-color:var(--acc)}
+  .bar{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg) 82%,transparent);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:8px 0 12px}
+  label.f{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mut)}
+  select,input[type=text]{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font:inherit;min-height:32px}
+  select#host{min-width:230px}
+  input[type=text]{min-width:180px}
+  select:focus,input:focus{outline:none;border-color:var(--acc)}
+  button{cursor:pointer;background:var(--acc);color:#04121e;border:0;border-radius:8px;padding:7px 13px;font:inherit;font-weight:600;min-height:32px}
+  .count{color:var(--mut);font-size:12px;margin:2px 0 8px}
+  .count b{color:var(--ink)}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+  th,td{text-align:left;padding:7px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{background:var(--panel2);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  td.nm{font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+  td.n{white-space:nowrap;text-align:right;color:var(--ink);width:1%}
+  td.bar{width:38%}
+  td.bar .b{height:8px;background:#0c1622;border-radius:4px;overflow:hidden}
+  td.bar .b i{display:block;height:100%;background:var(--teal)}
+  td.last{white-space:nowrap;color:var(--mut);font-family:ui-monospace,monospace}
+  .empty{padding:26px;text-align:center;color:var(--mut)}
+  .note{color:var(--mut);font-size:11.5px;margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔎 Consultas DNS por host <span class="sp"></span>
+    <a href="/">← Painel</a><a href="/logs">Log</a></h1>
+
+  <div class="bar">
+    <label class="f">Host
+      <select id="host"><option value="">Todos os hosts</option></select>
+    </label>
+    <label class="f">Buscar domínio
+      <input type="text" id="q" placeholder="ex.: google, whatsapp…">
+    </label>
+    <label class="f">Período
+      <select id="range">
+        <option value="1h">1 hora</option>
+        <option value="6h">6 horas</option>
+        <option value="24h" selected>24 horas</option>
+        <option value="3d">3 dias</option>
+        <option value="7d">7 dias</option>
+      </select>
+    </label>
+    <label class="f">Limite
+      <select id="limit"><option>100</option><option selected>300</option><option>1000</option></select>
+    </label>
+    <label class="f">&nbsp;<button id="go">Atualizar</button></label>
+  </div>
+
+  <div class="count" id="count">carregando…</div>
+  <div id="out"></div>
+
+  <div class="note">Registra apenas consultas <b>A</b> (nome→IPv4) que passam pelo servidor <code>.1</code>, retenção de <b>7 dias</b>. Aparelhos que usam DNS-sobre-HTTPS próprio (Chrome/Firefox/alguns celulares) não aparecem aqui.</div>
+</div>
+
+<script>
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function fmt(ts){var d=new Date(ts*1000),z=function(n){return (n<10?'0':'')+n;};return z(d.getDate())+'/'+z(d.getMonth()+1)+' '+z(d.getHours())+':'+z(d.getMinutes());}
+
+  function fillHosts(hosts,keep){
+    var sel=$('host'),cur=keep!=null?keep:sel.value;
+    var o='<option value="">Todos os hosts</option>';
+    (hosts||[]).forEach(function(h){
+      var lbl=(h.name?h.name+' ':'')+'('+h.ip+') — '+h.n.toLocaleString('pt-BR');
+      o+='<option value="'+esc(h.ip)+'">'+esc(lbl)+'</option>';
+    });
+    sel.innerHTML=o; sel.value=cur;
+  }
+
+  function render(d){
+    fillHosts(d.hosts);
+    var names=d.names||[];
+    $('count').innerHTML='<b>'+(d.total||0).toLocaleString('pt-BR')+'</b> consultas no período · <b>'+names.length+'</b> domínios'+($('host').value?' (host filtrado)':'');
+    if(!names.length){ $('out').innerHTML='<div class="empty">Sem consultas ainda — o log começa a encher conforme os aparelhos resolvem nomes pelo .1.</div>'; return; }
+    var max=(names[0]&&names[0].n)||1;
+    var h='<div class="scroll"><table><thead><tr><th>Domínio</th><th>Consultas</th><th></th><th>Última</th></tr></thead><tbody>';
+    names.forEach(function(r){
+      var pct=Math.max(2,Math.round(100*r.n/max));
+      h+='<tr><td class="nm">'+esc(r.name)+'</td>'
+        +'<td class="n">'+r.n.toLocaleString('pt-BR')+'</td>'
+        +'<td class="bar"><div class="b"><i style="width:'+pct+'%"></i></div></td>'
+        +'<td class="last">'+fmt(r.last)+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+    $('out').innerHTML=h;
+  }
+
+  function qstr(){
+    var p=new URLSearchParams();
+    p.set('range',$('range').value); p.set('limit',$('limit').value);
+    if($('host').value) p.set('client',$('host').value);
+    if($('q').value.trim()) p.set('q',$('q').value.trim());
+    return p.toString();
+  }
+  function load(){
+    fetch('/api/dnslog?'+qstr(),{cache:'no-store'}).then(function(r){return r.json();}).then(render)
+      .catch(function(e){ $('count').textContent='erro ao carregar: '+e; });
+  }
+  ['host','range','limit'].forEach(function(id){ $(id).addEventListener('change',load); });
+  $('go').addEventListener('click',load);
+  var qt=null;
+  $('q').addEventListener('input',function(){ clearTimeout(qt); qt=setTimeout(load,350); });
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "_LEIA": "Modelo do dns.json (NetMon-DNS). 'hosts' = nomes curtos que a rede resolve pelo servidor.",
+  "bind": "0.0.0.0",
+  "port": 53,
+  "domain": "empresa.local",
+  "ttl": 300,
+  "upstream": ["8.8.8.8", "1.1.1.1"],
+  "upstream_timeout": 3,
+  "hosts": {
+    "noc": "192.168.0.1",
+    "servidor": "192.168.0.1",
+    "roteador": "192.168.0.10",
+    "antena-base": "192.168.0.11",
+    "dvr1": "192.168.0.30",
+    "impressora": "192.168.0.20"
+  }
+}

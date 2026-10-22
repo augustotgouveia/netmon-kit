@@ -1,0 +1,766 @@
+<!doctype html><html lang="pt-br"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0d141f">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOC">
+<title>NOC · Rede {{SITE}}</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#080b12;--p1:#121a27;--p2:#0d141f;--line:#1f2a3a;--txt:#e8eef7;--mut:#8295ad;--blue:#4aa3ff;--teal:#2ee6a6;--amber:#ffb43a;--red:#ff5a6a;--g:#2ee6a6}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1100px 500px at 80% -15%,#16243d 0%,var(--bg) 55%);color:var(--txt);font:14px/1.45 'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:18px}
+use{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ic{width:20px;height:20px;display:inline-block;vertical-align:-.35em}
+.top{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#1e3a5f,#16243d);display:flex;align-items:center;justify-content:center;color:var(--teal);border:1px solid var(--line)}
+.brand h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.3px}
+.brand .sub{font-size:11.5px;color:var(--mut)}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.upd{text-align:right;line-height:1.25}
+.upd .t{font-size:13px;font-variant-numeric:tabular-nums}
+.upd .a{font-size:11px;color:var(--mut)}
+.clock{font-variant-numeric:tabular-nums;color:var(--mut);font-size:13px}
+.sf{display:inline-flex;gap:3px;align-items:center;padding:3px 5px;border-radius:20px;background:#0a121d;border:1px solid var(--line)}
+.sf i{width:8px;height:8px;border-radius:50%;background:#28323f;transition:.3s}
+.sf.red i.r{background:var(--red);box-shadow:0 0 7px var(--red)}
+.sf.amber i.a{background:var(--amber);box-shadow:0 0 7px var(--amber)}
+.sf.green i.g{background:var(--teal);box-shadow:0 0 7px var(--teal)}
+.sf.big i{width:11px;height:11px}
+/* abas */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--mut);font:600 13.5px 'Segoe UI',system-ui,sans-serif;padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:7px;margin-bottom:-1px}
+.tab .ic{width:17px;height:17px}
+.tab.on{color:var(--teal);border-bottom-color:var(--teal)}
+.tab:hover:not(.on){color:var(--txt)}
+.tabpanel{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.muralbtn{display:inline-flex;align-items:center;gap:8px;background:rgba(46,230,166,.13);border:1px solid var(--teal);color:var(--teal);text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:9px;text-transform:none;letter-spacing:0}
+/* panels */
+.panel{background:linear-gradient(180deg,var(--p1),var(--p2));border:1px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.phead{display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;letter-spacing:.4px;color:#c5d2e3;text-transform:uppercase}
+.phead .ic{color:var(--teal)}
+.phead .badge{margin-left:auto;font-weight:400;text-transform:none;font-size:12px;color:var(--mut)}
+.pbody{padding:16px}
+/* flow */
+.flowsvg{display:block;width:100%;height:auto;color:#93a6c0}
+.fl{stroke-width:3;stroke-dasharray:2 11;stroke-linecap:round}
+.dl{stroke:var(--blue);animation:dash linear infinite}
+.ul{stroke:var(--teal);animation:dashr linear infinite}
+.link{stroke:#243349;stroke-width:5;stroke-linecap:round}
+@keyframes dash{to{stroke-dashoffset:-160}}
+@keyframes dashr{to{stroke-dashoffset:160}}
+.nl{fill:var(--txt);font-size:12px;font-weight:600;text-anchor:middle}
+.ns{fill:var(--mut);font-size:10px;text-anchor:middle}
+.lblb{fill:var(--blue);font-size:12.5px;text-anchor:middle;font-variant-numeric:tabular-nums;font-weight:600}
+.lblt{fill:var(--teal);font-size:12.5px;text-anchor:middle;font-variant-numeric:tabular-nums;font-weight:600}
+.chiptext{fill:#06223a;font-size:10.5px;text-anchor:middle;font-weight:700}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:13px;margin-bottom:16px}
+.tile{background:linear-gradient(180deg,var(--p1),var(--p2));border:1px solid var(--line);border-radius:14px;padding:14px}
+.tile .h{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.tile .h .ic{width:16px;height:16px;color:var(--blue)}
+.tile .h .sf{margin-left:auto;padding:2px 4px}
+.tile .h .sf i{width:6px;height:6px}
+.tile .v{font-size:27px;font-weight:600;margin-top:7px;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:12px;color:var(--mut);font-weight:400}
+.bw{height:6px;background:#0a121d;border-radius:4px;margin-top:9px;overflow:hidden}
+.bw i{display:block;height:100%;width:0;border-radius:4px;transition:width .6s ease,background .3s}
+.tile .x{font-size:10.5px;color:var(--mut);margin-top:6px}
+/* enlace */
+.base{display:flex;align-items:center;gap:12px;background:#0c1622;border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:13px}
+.base .ic{width:30px;height:30px;color:var(--teal)}
+.base .bi{font-size:13px;font-weight:600}
+.base .bs{font-size:11px;color:var(--mut)}
+.remotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px}
+.rem{display:flex;align-items:center;gap:12px;background:#0c1622;border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
+.rem::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,#28323f)}
+.rem .ic{width:30px;height:30px;color:var(--c,#93a6c0);flex:0 0 auto}
+.rem .info{flex:1;min-width:0}
+.rem .rn{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+.rem .rd{font-size:11px;color:var(--mut);margin-top:2px}
+.arrow{flex:0 0 auto;color:var(--c,#93a6c0)}
+.bars{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.bars i{width:4px;border-radius:1px;display:block}
+/* hosts */
+.hosts{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px;max-height:360px;overflow:auto}
+.host{display:flex;align-items:center;gap:9px;background:#0c1622;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px}
+.host .ic{width:18px;height:18px;color:#93a6c0;flex:0 0 auto}
+.host .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.host .vd{color:var(--mut);font-size:10px}
+.host .ip{color:var(--mut);font-size:11px;font-variant-numeric:tabular-nums}
+.host .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.cols{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+canvas{width:100%;height:90px;display:block}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+/* dvrs + alertas */
+.dvrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:11px}
+.dvr{display:flex;align-items:flex-start;gap:11px;background:#0c1622;border:1px solid var(--line);border-radius:12px;padding:12px 13px;position:relative;overflow:hidden}
+.dvr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,#28323f)}
+.dvr>.ic{width:26px;height:26px;color:var(--c,#93a6c0);flex:0 0 auto;margin-top:2px}
+.dvr .info{flex:1;min-width:0}
+.dvr .rn{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.dvr .rd{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvr .hdd{font-size:11px;margin-top:4px;display:flex;align-items:center;gap:5px}
+.dvr .hdd .ic{flex:0 0 auto}
+.dvr .rebootbtn{margin-top:8px;font-size:11px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:#0c1622;color:var(--mut);cursor:pointer}
+.dvr .rebootbtn:hover{border-color:var(--amber);color:var(--amber)}
+.alerts{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto}
+.alert{display:flex;align-items:center;gap:9px;background:#0c1622;border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:12px}
+.alert .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.alert .msg{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alert .ts{color:var(--mut);font-size:10.5px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+/* historico */
+.hrange{margin-left:auto;display:flex;gap:5px}
+.hrange button{font-size:11.5px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:#0c1622;color:var(--mut);cursor:pointer}
+.hrange button.on{background:rgba(46,230,166,.15);border-color:var(--teal);color:var(--teal)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chart h4{margin:0 0 4px;font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.chart canvas{width:100%;height:140px;display:block}
+@media(max-width:820px){.charts{grid-template-columns:1fr}}
+.host{cursor:pointer}
+/* modal detalhe do no */
+.modal{position:fixed;inset:0;background:rgba(4,7,12,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.mcard{background:linear-gradient(180deg,var(--p1),var(--p2));border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.mhead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px;font-weight:600;position:sticky;top:0;background:var(--p1)}
+.mhead button{margin-left:auto;background:none;border:0;color:var(--mut);font-size:17px;cursor:pointer;line-height:1}
+.mbody{padding:8px 16px 16px}
+.drow{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #141d2b;font-size:13px}
+.drow:last-child{border-bottom:0}
+.dk{color:var(--mut);min-width:108px;flex:0 0 auto}
+.dv{color:var(--txt);font-variant-numeric:tabular-nums;word-break:break-word}
+.dsec{margin:12px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);font-weight:700}
+</style></head><body>
+<svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs>
+<symbol id="ic-cloud" viewBox="0 0 24 24"><path d="M7.2 18a4 4 0 0 1 .3-8 5 5 0 0 1 9.4-1.2A3.6 3.6 0 0 1 16.8 18z"/></symbol>
+<symbol id="ic-router" viewBox="0 0 24 24"><rect x="2.5" y="13" width="19" height="7" rx="1.6"/><circle cx="6.5" cy="16.5" r=".8"/><circle cx="9.5" cy="16.5" r=".8"/><path d="M15 13l-1.5-4M19 13l1.6-4"/></symbol>
+<symbol id="ic-switch" viewBox="0 0 24 24"><rect x="2.5" y="8.5" width="19" height="7" rx="1.6"/><path d="M6 15.5v2.6M10 15.5v2.6M14 15.5v2.6M18 15.5v2.6"/></symbol>
+<symbol id="ic-server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="7" rx="1.6"/><rect x="3.5" y="13" width="17" height="7" rx="1.6"/><circle cx="7" cy="7.5" r=".8"/><circle cx="7" cy="16.5" r=".8"/></symbol>
+<symbol id="ic-printer" viewBox="0 0 24 24"><path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="1.6"/><rect x="7" y="14" width="10" height="6"/><circle cx="17" cy="12" r=".8"/></symbol>
+<symbol id="ic-camera" viewBox="0 0 24 24"><rect x="3" y="7.5" width="12" height="8" rx="1.6"/><circle cx="9" cy="11.5" r="2.2"/><path d="M15 9.5l5-2.5v9l-5-2.5z"/></symbol>
+<symbol id="ic-tower" viewBox="0 0 24 24"><path d="M8 21l4-12 4 12M9.5 17h5"/><circle cx="12" cy="6" r="1.3"/><path d="M8.8 6.6a5 5 0 0 1 6.4 0M6.8 4.4a8 8 0 0 1 10.4 0"/></symbol>
+<symbol id="ic-wifi" viewBox="0 0 24 24"><path d="M5 11.5a10 10 0 0 1 14 0M8 14.5a6 6 0 0 1 8 0"/><circle cx="12" cy="18" r="1.2"/></symbol>
+<symbol id="ic-pc" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="1.6"/><path d="M9 20h6M12 16.5V20"/></symbol>
+<symbol id="ic-phone" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M11 18h2"/></symbol>
+<symbol id="ic-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1"/><rect x="10" y="10" width="4" height="4"/><path d="M10 7V4.6M14 7V4.6M10 17v2.4M14 17v2.4M7 10H4.6M7 14H4.6M17 10h2.4M17 14h2.4"/></symbol>
+<symbol id="ic-ram" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 8v8M11 8v8M15 8v8M10 16h4v2.4h-4z"/></symbol>
+<symbol id="ic-gauge" viewBox="0 0 24 24"><path d="M5.5 18a8 8 0 1 1 13 0"/><path d="M12 14l3.6-3"/><circle cx="12" cy="14" r="1"/></symbol>
+<symbol id="ic-activity" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 5 13 2.5-7H21"/></symbol>
+<symbol id="ic-net" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M12 7v3.6M12 10.6L6 16M12 10.6L18 16"/></symbol>
+<symbol id="ic-building" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+<symbol id="ic-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="ic-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></symbol>
+<symbol id="ic-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.6 2H4.4z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+<symbol id="ic-hdd" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><circle cx="8" cy="12" r="2.6"/><path d="M8 12h.02M15.5 9.5v5"/></symbol>
+</defs></svg>
+
+<div class="wrap">
+<div class="top">
+ <div class="brand"><div class="logo"><svg class="ic" style="width:22px;height:22px"><use href="#ic-activity"/></svg></div>
+   <div><h1>NOC · Rede {{SITE}}</h1><div class="sub" id="subhead">conectando…</div></div></div>
+ <div class="right">
+   <span class="sf big" id="ovr"><i class="r"></i><i class="a"></i><i class="g"></i></span>
+   <div class="upd"><div class="t" id="updtime">--:--:--</div><div class="a" id="updago">aguardando</div></div>
+   <div class="clock"><svg class="ic" style="width:15px;height:15px"><use href="#ic-clock"/></svg> <span id="clock">--:--:--</span></div>
+ </div>
+</div>
+
+<nav class="tabs">
+ <button class="tab" data-tab="geral"><svg class="ic"><use href="#ic-activity"/></svg> Geral</button>
+ <button class="tab" data-tab="rede"><svg class="ic"><use href="#ic-net"/></svg> Rede</button>
+ <button class="tab" data-tab="cameras"><svg class="ic"><use href="#ic-camera"/></svg> Câmeras</button>
+ <button class="tab" data-tab="mapa"><svg class="ic"><use href="#ic-tower"/></svg> Mapa</button>
+</nav>
+
+<section class="tabpanel" data-tab="geral">
+ <div class="panel">
+  <div class="phead"><svg class="ic"><use href="#ic-activity"/></svg> Fluxo de Internet <span class="badge" id="inet-badge">-</span></div>
+  <div class="pbody"><svg viewBox="0 0 940 168" class="flowsvg" preserveAspectRatio="xMidYMid meet">
+   <line id="f-dl" class="fl dl" x1="125" y1="60" x2="300" y2="60" marker-end="url(#ahb)"/>
+   <line id="f-ul" class="fl ul" x1="300" y1="82" x2="125" y2="82" marker-end="url(#aht)"/>
+   <text class="lblb" id="f-down" x="212" y="48">↓ -</text>
+   <text class="lblt" id="f-up" x="212" y="100">↑ -</text>
+   <line class="link" x1="398" y1="71" x2="548" y2="71"/>
+   <line id="f-l2" class="fl dl" x1="398" y1="71" x2="548" y2="71" style="opacity:.55"/>
+   <line class="link" x1="648" y1="71" x2="808" y2="71"/>
+   <line id="f-l3" class="fl dl" x1="648" y1="71" x2="808" y2="71" style="opacity:.55"/>
+   <rect id="f-satchip" x="660" y="84" width="136" height="19" rx="9.5" fill="#2ee6a6"/>
+   <text class="chiptext" id="f-sat" x="728" y="97">sat -</text>
+   <g color="#93a6c0"><use href="#ic-cloud" x="48" y="49" width="44" height="44"/><text class="nl" x="70" y="120">Internet</text><text class="ns" x="70" y="134">Operadora</text></g>
+   <g color="#9fd0ff"><use href="#ic-router" x="328" y="49" width="44" height="44"/><text class="nl" x="350" y="120">Cisco 2911</text><text class="ns" x="350" y="134">.10</text></g>
+   <g color="#93a6c0"><use href="#ic-switch" x="568" y="49" width="44" height="44"/><text class="nl" x="590" y="120">Switch</text><text class="ns" x="590" y="134">100 Mb</text></g>
+   <g color="#93a6c0"><use href="#ic-building" x="828" y="49" width="44" height="44"/><text class="nl" x="850" y="120">LAN</text><text class="ns" id="f-lan" x="850" y="134">- hosts</text></g>
+   <defs>
+    <marker id="ahb" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#4aa3ff"/></marker>
+    <marker id="aht" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#2ee6a6"/></marker>
+   </defs>
+  </svg></div>
+ </div>
+ <div class="cards">
+  <div class="tile"><div class="h"><svg class="ic" style="color:var(--blue)"><use href="#ic-down"/></svg>Internet ↓</div><div class="v" id="v-dn">-<small>Mb/s</small></div></div>
+  <div class="tile"><div class="h"><svg class="ic" style="color:var(--teal)"><use href="#ic-up"/></svg>Internet ↑</div><div class="v" id="v-up">-<small>Mb/s</small></div></div>
+ </div>
+ <div class="cols">
+  <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-bell"/></svg> Alertas recentes <a href="/logs" style="margin-left:auto;font-size:12px;font-weight:400;color:#37b6ff;text-decoration:none">📜 Log completo →</a></div><div class="pbody"><div class="alerts" id="alerts"></div></div></div>
+  <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-down"/></svg> Internet — histórico (ao vivo)</div><div class="pbody"><canvas id="spark"></canvas></div></div>
+ </div>
+</section>
+
+<section class="tabpanel" data-tab="rede">
+ <div class="cards">
+  <div class="tile"><div class="h"><svg class="ic"><use href="#ic-cpu"/></svg>CPU<span class="sf" id="sf-cpu"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="v" id="v-cpu">-<small>%</small></div><div class="bw"><i id="bar-cpu"></i></div></div>
+  <div class="tile"><div class="h"><svg class="ic"><use href="#ic-ram"/></svg>Memória<span class="sf" id="sf-mem"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="v" id="v-mem">-<small>%</small></div><div class="bw"><i id="bar-mem"></i></div></div>
+  <div class="tile"><div class="h"><svg class="ic"><use href="#ic-gauge"/></svg>Saturação LAN<span class="sf" id="sf-sat"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="v" id="v-sat">-<small>%</small></div><div class="bw"><i id="bar-sat"></i></div><div class="x" id="x-drops">- drops/s</div></div>
+  <div class="tile"><div class="h"><svg class="ic"><use href="#ic-net"/></svg>DHCP<span class="sf green" id="sf-dhcp"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="v" id="v-dhcp">-<small> leases</small></div><div class="bw"><i id="bar-dhcp"></i></div></div>
+  <div class="tile"><div class="h"><svg class="ic"><use href="#ic-activity"/></svg>NAT<span class="sf green" id="sf-nat"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="v" id="v-nat">-<small> sessões</small></div></div>
+ </div>
+ <div class="panel">
+  <div class="phead"><svg class="ic"><use href="#ic-tower"/></svg> Enlace de longa distância <span class="badge" id="en-stat">-</span></div>
+  <div class="pbody">
+    <div class="base"><svg class="ic"><use href="#ic-tower"/></svg><div><div class="bi" id="en-bname">-</div><div class="bs" id="en-binfo">-</div></div><span class="sf big" id="en-bsf" style="margin-left:auto"><i class="r"></i><i class="a"></i><i class="g"></i></span></div>
+    <div class="remotes" id="remotes"></div>
+  </div>
+ </div>
+ <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-net"/></svg> Dispositivos <span class="badge" id="hcount">-</span><a href="/estacoes" style="margin-left:auto;font-size:12px;font-weight:400;color:#37b6ff;text-decoration:none">🖥 estações Windows →</a></div><div class="pbody"><div class="hosts" id="hosts"></div></div></div>
+ <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-net"/></svg> DNS (servidor .1) <span class="badge" id="dns-up">-</span> <a href="/dnslog" style="margin-left:auto;font-size:12px;font-weight:400;color:#37b6ff;text-decoration:none">🔎 consultas por host →</a></div><div class="pbody"><div id="dnsbox">carregando…</div></div></div>
+ <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-wifi"/></svg> APs Omada <span class="badge" id="omada-badge">-</span></div><div class="pbody"><div id="omadabox">carregando…</div></div></div>
+ <div class="panel">
+  <div class="phead"><svg class="ic"><use href="#ic-activity"/></svg> Histórico
+    <span class="hrange" id="hrange"><button data-r="1h">1h</button><button data-r="6h">6h</button><button data-r="24h">24h</button><button data-r="7d">7d</button><button data-r="30d">30d</button></span>
+  </div>
+  <div class="pbody"><div class="charts">
+    <div class="chart"><h4>Banda Internet (Mb/s)</h4><canvas id="ch-band"></canvas></div>
+    <div class="chart"><h4>Saturação LAN (%)</h4><canvas id="ch-sat"></canvas></div>
+    <div class="chart"><h4>CPU / Memória (%)</h4><canvas id="ch-load"></canvas></div>
+    <div class="chart"><h4>Sinal das antenas (dBm)</h4><canvas id="ch-ant"></canvas></div>
+  </div></div>
+ </div>
+</section>
+
+<section class="tabpanel" data-tab="cameras">
+ <div class="panel">
+  <div class="phead"><svg class="ic"><use href="#ic-camera"/></svg> Câmeras / DVRs <span class="badge" id="dvr-stat" style="margin-left:8px">-</span>
+   <a class="muralbtn" href="/cameras" style="margin-left:auto"><svg class="ic" style="width:16px;height:16px"><use href="#ic-camera"/></svg> Abrir mural ao vivo</a></div>
+  <div class="pbody"><div class="dvrs" id="dvrs"></div></div>
+ </div>
+</section>
+
+<style>
+.mapwrap{position:relative;overflow:hidden}
+#modal{z-index:2000}
+.lnode.sel .ldot{box-shadow:0 0 0 4px var(--blue),0 0 0 9px rgba(74,163,255,.35)!important}
+.lnode[data-q=neutral] .ldot{border-color:var(--mut)}
+.lnode[data-q=neutral] .ldot svg{color:var(--mut)}
+.lnode[data-q=neutral] .lwave{display:none}
+#lmap{width:100%;height:66vh;min-height:420px;background:#070b12}
+.maphint{position:absolute;left:12px;bottom:10px;z-index:500;font-size:12px;color:var(--mut);background:rgba(8,12,20,.8);padding:6px 10px;border-radius:8px;border:1px solid var(--line);pointer-events:none}
+.mapbtn{font-size:12px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:#0c1622;color:var(--txt);cursor:pointer}
+.mapbtn.ok{border-color:var(--teal);color:var(--teal)}
+.leaflet-container{background:#070b12;font:inherit}
+.leaflet-bar a,.leaflet-control-zoom a{background:#0c1622;color:var(--txt);border-color:var(--line)}
+.leaflet-bar a:hover{background:#16263a}
+.leaflet-control-attribution{background:rgba(8,12,20,.7)!important;color:#5b6b80!important}
+.leaflet-control-attribution a{color:#7d90a8!important}
+.llink{fill:none;stroke-linecap:round}
+.llink.q-good{animation:mflow .9s linear infinite}
+.llink.q-warn{animation:mflow 1.8s linear infinite}
+.llink.q-bad{animation:mflow 2.6s linear infinite}
+@keyframes mflow{to{stroke-dashoffset:-15}}
+.lnode{position:relative;width:52px;height:52px}
+.lnode .ldot{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#0e1a2a;border:2.5px solid var(--teal);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(46,230,166,.14);z-index:2}
+.lnode .ldot svg{width:24px;height:24px;color:var(--teal)}
+.lnode .lwave{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:2px solid var(--teal);opacity:0;animation:lwave 2.8s ease-out infinite;z-index:1;pointer-events:none}
+.lnode .lwave:nth-child(2){animation-delay:.9s}.lnode .lwave:nth-child(3){animation-delay:1.8s}
+@keyframes lwave{0%{transform:scale(.6);opacity:.5}100%{transform:scale(2.7);opacity:0}}
+.lnode .llabel{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;text-align:center;pointer-events:none;text-shadow:0 1px 3px #000,0 0 6px #000}
+.lnode .llabel b{display:block;font-size:13px;color:#e8eef7;font-weight:600}
+.lnode .llabel span{display:block;font-size:11px;color:#9fb0c6}
+.lnode[data-q=warn] .ldot{border-color:var(--amber);box-shadow:0 0 0 6px rgba(255,180,58,.14)}.lnode[data-q=warn] .ldot svg{color:var(--amber)}.lnode[data-q=warn] .lwave{border-color:var(--amber)}
+.lnode[data-q=bad] .ldot,.lnode[data-q=down] .ldot{border-color:var(--red);box-shadow:0 0 0 6px rgba(255,90,106,.16)}
+.lnode[data-q=bad] .ldot svg,.lnode[data-q=down] .ldot svg{color:var(--red)}
+.lnode[data-q=down] .lwave{display:none}
+.lnode[data-q=down] .ldot{animation:mblink 1.1s steps(2,start) infinite}
+@keyframes mblink{50%{opacity:.5}}
+.maphud{position:absolute;top:10px;right:10px;z-index:600;background:rgba(8,12,20,.84);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12px;min-width:158px;pointer-events:none}
+.maphud .hh{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--blue);font-weight:700;margin-bottom:5px}
+.maphud .hr{display:flex;justify-content:space-between;gap:14px;line-height:1.75}
+.maphud .hr .k{color:var(--mut)}
+.maphud .hr .v{color:var(--txt);font-weight:600}
+.leaflet-tooltip.llabel-link{background:rgba(8,12,20,.88);border:1px solid var(--line);color:var(--teal);font-weight:600;font-size:11px;box-shadow:none;padding:2px 7px}
+.leaflet-tooltip.llabel-link::before{display:none}
+</style>
+<section class="tabpanel" data-tab="mapa">
+ <div class="panel" style="padding:0;overflow:hidden">
+  <div class="phead" style="padding:11px 14px"><svg class="ic"><use href="#ic-tower"/></svg> Mapa de enlaces <span class="badge" id="map-stat" style="margin-left:8px">-</span>
+   <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+    <button id="map-edges" class="mapbtn" title="Editar enlaces: clique em 2 nós para ligar/desligar">🔗 Enlaces</button>
+    <button id="map-edges-auto" class="mapbtn" title="Restaurar enlaces automáticos" style="display:none">↺ Auto</button>
+    <button id="map-addnode" class="mapbtn" title="Criar um nó manual (switch, AP, etc.)">➕ Nó</button>
+    <button id="map-fit" class="mapbtn" title="Enquadrar os nós">⊡ Enquadrar</button>
+    <button id="map-save" class="mapbtn" title="Salvar as posições e o enquadramento no servidor">💾 Salvar localizações</button>
+   </span></div>
+  <div class="mapwrap">
+   <div id="lmap"></div>
+   <div class="maphud" id="maphud"></div>
+   <div class="maphint">📡 Arraste cada nó para o local real · depois clique em 💾 Salvar localizações.</div>
+  </div>
+ </div>
+</section>
+</div>
+
+<div id="modal" class="modal" style="display:none"><div class="mcard">
+ <div class="mhead"><span id="mtitle">-</span><button id="mclose" title="Fechar">✕</button></div>
+ <div class="mbody" id="mbody"></div>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const QCOL={good:'#2ee6a6',warn:'#ffb43a',bad:'#ff5a6a',down:'#ff5a6a'};
+let lastOk=0, antN=-1, lastM=null, curTab='geral', MAPPOS={}, mapBuilt=false, LMAP=null, LMARKERS={}, LLINES={}, MAPLINKS=[], MAPEDGES=null, MAPNODES=[], mapEdit=false, mapSel=null;
+function fmt(n,d=2){return(n==null||isNaN(n))?'-':Number(n).toFixed(d);}
+function setSf(id,lvl){const e=$(id);if(e)e.className='sf '+(lvl||'');}
+function lvlFromVal(v,warn,bad){return v==null?'':(v>=bad?'red':v>=warn?'amber':'green');}
+function flowDur(m){m=Math.max(0,Math.min(100,m||0));if(m<0.05)return 0;return +(2.0-1.8*Math.min(1,m/40)).toFixed(2);}
+function setFlow(id,m){const e=$(id);if(!e)return;const d=flowDur(m);if(!d){e.style.animationPlayState='paused';e.style.opacity=.1;}else{e.style.animationPlayState='running';e.style.opacity=.95;e.style.animationDuration=d+'s';}}
+function satColor(s){return s<40?'#2ee6a6':s<75?'#ffb43a':'#ff5a6a';}
+function bars(dbm,q){const lv=dbm==null?0:dbm>=-60?4:dbm>=-70?3:dbm>=-78?2:dbm>=-85?1:0;const c=QCOL[q]||'#28323f';let s='<span class="bars">';for(let i=1;i<=4;i++)s+='<i style="height:'+(i*3+3)+'px;background:'+(i<=lv?c:'#28323f')+'"></i>';return s+'</span>';}
+function iconFor(h){const n=(h.name||'').toLowerCase(),v=(h.vendor||'').toLowerCase();
+ if(/impress|zebra|brother|elgin/.test(n)||/zebra|brother/.test(v))return'ic-printer';
+ if(/dvr|cam|mhdx/.test(n))return'ic-camera';
+ if(/antena|radio|matriz|gov\./.test(n))return'ic-tower';
+ if(/mesh|halo/.test(n))return'ic-wifi';
+ if(/cisco/.test(n))return'ic-router';
+ if(/tp-link/.test(n))return'ic-router';
+ if(/servidor/.test(n))return'ic-server';
+ if(/^pc$|matriz32/.test(n))return'ic-pc';
+ if(v==='aleatorio'||/^host \./.test(n))return'ic-phone';
+ return'ic-net';}
+function drawSpark(h){const c=$('spark');if(!c)return;const x=c.getContext('2d'),W=c.width=c.clientWidth*2||600,H=c.height=180;x.clearRect(0,0,W,H);if(!h||!h.length)return;const mx=Math.max(1,...h.map(p=>Math.max(p.down,p.up)));const pl=(k,col)=>{x.beginPath();h.forEach((p,i)=>{const px=i/Math.max(1,h.length-1)*W,py=H-(p[k]/mx)*(H-16)-8;i?x.lineTo(px,py):x.moveTo(px,py);});x.strokeStyle=col;x.lineWidth=3;x.stroke();x.lineTo(W,H);x.lineTo(0,H);x.closePath();x.fillStyle=col+'1e';x.fill();};pl('down','#4aa3ff');pl('up','#2ee6a6');}
+function renderRemotes(a){
+ const rem=a.remotes||[];
+ $('remotes').innerHTML=rem.map(r=>{const c=QCOL[r.quality]||'#28323f';
+  const lvl=r.quality==='good'?'green':r.quality==='warn'?'amber':'red';
+  const det=r.up?[r.signal,r.rate,(r.ccq!=null?'CCQ '+r.ccq+'%':'')].filter(Boolean).join(' · '):'desconectado';
+  return '<div class="rem" style="--c:'+c+'"><svg class="ic"><use href="#ic-tower"/></svg>'
+   +'<div class="info"><div class="rn">'+r.name+' <span class="sf '+lvl+'" style="padding:2px 4px"><i class="r"></i><i class="a"></i><i class="g"></i></span></div>'
+   +'<div class="rd">'+det+'</div></div>'+bars(r.dbm,r.quality)
+   +'<svg class="ic arrow" style="width:22px;height:22px"><use href="#ic-arrow"/></svg></div>';}).join('')||'<div style="color:var(--mut)">sem dados do enlace</div>';
+}
+function statusColor(s){return s==='up'?'#2ee6a6':s==='warn'?'#ffb43a':'#ff5a6a';}
+function renderDvrs(cams){
+ const d=(cams&&cams.dvrs)||[],box=$('dvrs');if(!box)return;
+ if(!d.length){box.innerHTML='<div style="color:var(--mut)">sem DVRs configurados</div>';$('dvr-stat').textContent='-';return;}
+ $('dvr-stat').textContent=d.filter(v=>v.status==='up').length+' / '+d.length+' ok';
+ box.innerHTML=d.map(v=>{const c=statusColor(v.status),lvl=v.status==='up'?'green':v.status==='warn'?'amber':'red';
+  const txt=v.status==='up'?('OK'+(v.codec?' · '+v.codec:'')+(v.ms!=null?' · '+v.ms+'ms':'')):(v.status==='warn'?('responde · '+v.code):'sem resposta RTSP');
+  let hdd='';
+  if(v.hdd){const he=v.hdd.error,hc=he?'#ff5a6a':'#2ee6a6';hdd='<div class="hdd" style="color:'+hc+'"><svg class="ic" style="width:13px;height:13px;color:'+hc+'"><use href="#ic-hdd"/></svg>'+v.hdd.disks+' disco'+(v.hdd.disks>1?'s':'')+' · '+(he?'ERRO no disco!':'saudável')+'</div>';}
+  else if(v.status!=='down'){hdd='<div class="hdd" style="color:var(--mut)"><svg class="ic" style="width:13px;height:13px"><use href="#ic-hdd"/></svg>HD: sem dados</div>';}
+  return '<div class="dvr" style="--c:'+c+'"><svg class="ic"><use href="#ic-camera"/></svg><div class="info"><div class="rn">'+v.name
+   +' <span class="sf '+lvl+'" style="padding:2px 4px"><i class="r"></i><i class="a"></i><i class="g"></i></span></div><div class="rd">'+v.ip+' · '+(v.channels||'?')+' canais · '+txt+'</div>'+hdd+'<button class="rebootbtn" data-ip="'+v.ip+'" data-nm="'+v.name+'">⟳ Reiniciar</button></div></div>';}).join('');
+}
+function fmtTime(ts){return new Date(ts*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function renderAlerts(al){const a=al||[],box=$('alerts');if(!box)return;
+ if(!a.length){box.innerHTML='<div style="color:var(--mut)">nenhum alerta recente 🟢</div>';return;}
+ box.innerHTML=a.map(e=>{const col=e.level==='alert'?'#ff5a6a':e.level==='warn'?'#ffb43a':'#2ee6a6';
+  return '<div class="alert"><span class="dot" style="background:'+col+';box-shadow:0 0 6px '+col+'"></span><span class="msg">'+e.msg+'</span><span class="ts">'+fmtTime(e.ts)+'</span></div>';}).join('');
+}
+let histRange=localStorage.getItem('histRange')||'24h';
+function drawChart(id,series,fixedMin,fixedMax){
+ const c=$(id);if(!c)return;const x=c.getContext('2d');
+ const W=c.width=(c.clientWidth||520)*2,H=c.height=280;x.clearRect(0,0,W,H);
+ let allV=[],tmin=Infinity,tmax=-Infinity;
+ series.forEach(s=>{(s.data||[]).forEach(v=>{if(v!=null)allV.push(v);});(s.ts||[]).forEach(t=>{if(t<tmin)tmin=t;if(t>tmax)tmax=t;});});
+ if(!allV.length){x.fillStyle='#5a6b82';x.font='22px sans-serif';x.textAlign='center';x.fillText('coletando dados…',W/2,H/2);return;}
+ let mn=fixedMin!=null?fixedMin:Math.min.apply(null,allV),mx=fixedMax!=null?fixedMax:Math.max.apply(null,allV);
+ if(mx===mn)mx=mn+1;if(fixedMin==null&&fixedMax==null){const p=(mx-mn)*0.12;mn-=p;mx+=p;}
+ const PADL=66,PADB=34,PADT=20,PADR=14;
+ const px=t=>PADL+(tmax===tmin?0.5:(t-tmin)/(tmax-tmin))*(W-PADL-PADR);
+ const py=v=>PADT+(1-(v-mn)/(mx-mn))*(H-PADT-PADB);
+ x.strokeStyle='#1f2a3a';x.lineWidth=1;x.fillStyle='#5a6b82';x.font='20px sans-serif';x.textAlign='right';
+ for(let i=0;i<=4;i++){const vy=PADT+i/4*(H-PADT-PADB),val=mx-(i/4)*(mx-mn);x.beginPath();x.moveTo(PADL,vy);x.lineTo(W-PADR,vy);x.stroke();x.fillText((Math.abs(mx-mn)<3?val.toFixed(1):Math.round(val)),PADL-8,vy+7);}
+ x.textAlign='center';
+ for(let i=0;i<=4;i++){const t=tmin+i/4*(tmax-tmin),dt=new Date(t*1000),lab=(histRange==='7d'||histRange==='30d')?dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});x.fillText(lab,px(t),H-10);}
+ series.forEach(s=>{const ts=s.ts||[],d=s.data||[];x.beginPath();let st=false;for(let i=0;i<d.length;i++){if(d[i]==null){st=false;continue;}const X=px(ts[i]),Y=py(d[i]);if(!st){x.moveTo(X,Y);st=true;}else x.lineTo(X,Y);}x.strokeStyle=s.col;x.lineWidth=3;x.stroke();});
+ x.textAlign='left';let lx=PADL;series.forEach(s=>{x.fillStyle=s.col;x.fillRect(lx,2,16,16);x.fillStyle='#8295ad';x.font='19px sans-serif';x.fillText(s.name,lx+21,16);lx+=x.measureText(s.name).width+58;});
+}
+async function loadHist(){
+ let h;try{h=await(await fetch('/api/history?range='+histRange,{cache:'no-store'})).json();}catch(e){return;}
+ const mt=h.metrics||{ts:[]},T=mt.ts||[];
+ drawChart('ch-band',[{ts:T,data:mt.wan_down,col:'#4aa3ff',name:'↓ down'},{ts:T,data:mt.wan_up,col:'#2ee6a6',name:'↑ up'}],0);
+ drawChart('ch-sat',[{ts:T,data:mt.lan_sat,col:'#ffb43a',name:'saturação'}],0,100);
+ drawChart('ch-load',[{ts:T,data:mt.cpu,col:'#ff5a6a',name:'CPU'},{ts:T,data:mt.mem,col:'#4aa3ff',name:'Mem'}],0,100);
+ const ant=h.ant||{},cols=['#2ee6a6','#ffb43a','#4aa3ff','#ff5a6a'];
+ drawChart('ch-ant',Object.keys(ant).map((k,i)=>({ts:ant[k].ts,data:ant[k].dbm,col:cols[i%4],name:k})));
+}
+function setupHist(){const box=$('hrange');if(!box)return;box.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.r===histRange);
+ b.onclick=()=>{histRange=b.dataset.r;localStorage.setItem('histRange',histRange);box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.r===histRange));loadHist();};});}
+// ===== MAPA DE ENLACES (OpenStreetMap / Leaflet) =====
+async function loadMapPos(){ try{ MAPPOS=(await(await fetch('/api/mappos',{cache:'no-store'})).json())||{}; }catch(e){ MAPPOS={}; } }
+function autoEdges(m){
+ const a=(m&&m.ant)||{}, b=a.base, baseId=(b&&b.ip)||'base';
+ const e=[['modem','cisco'],['cisco',baseId]];
+ (a.remotes||[]).forEach(r=>e.push([baseId,r.ip]));
+ ((m.cams&&m.cams.dvrs)||[]).forEach(d=>e.push(['cisco',d.ip]));
+ return e;
+}
+function mapTopology(m){
+ const a=(m&&m.ant)||{}, b=a.base, baseId=(b&&b.ip)||'base';
+ const nodes=[
+  {id:'modem', name:'Modem / Internet', icon:'ic-cloud', quality:('inet_up' in m)?(m.inet_up?'good':'down'):'warn', info:('inet_up' in m)?(m.inet_up?'internet ok':'internet caiu'):'internet'},
+  {id:'cisco',name:'Cisco 2911', icon:'ic-router', quality:m.ok?'good':'down', info:m.ok?('CPU '+Math.round(m.cpu||0)+'% · '+(m.hosts_up||0)+' hosts'):'sem dados'},
+  {id:baseId, name:(b&&b.name)||'Antena base', icon:'ic-tower', quality:(b&&b.up)?'good':'down', info:(b&&b.up)?'base · SNMP ok':'sem SNMP'}
+ ];
+ (a.remotes||[]).forEach(r=>nodes.push({id:r.ip,name:r.name||r.ip,icon:'ic-tower',quality:r.quality||'down',info:r.up?((r.dbm!=null?r.dbm+' dBm':'online')+(r.ccq!=null?' · CCQ '+r.ccq+'%':'')):'offline'}));
+ ((m.cams&&m.cams.dvrs)||[]).forEach(d=>{ const q=d.status==='up'?((d.hdd&&d.hdd.error)?'warn':'good'):'down'; nodes.push({id:d.ip,name:d.name||d.ip,icon:'ic-camera',quality:q,info:d.status==='up'?((d.channels||'?')+' canais'+((d.hdd&&d.hdd.error)?' · ⚠ HD':'')):'offline'}); });
+ (MAPNODES||[]).forEach(function(cn){ let q='neutral', info=cn.ip||'nó manual'; if(cn.ip){ const h=(m.hosts||[]).find(x=>x.ip===cn.ip); if(h){ q=h.up?'good':'down'; info=cn.ip+(h.up?' · online':' · offline'); } else { q='down'; info=cn.ip+' · offline'; } } nodes.push({id:cn.id,name:cn.name||'Nó',icon:cn.icon||'ic-net',quality:q,info:info}); });
+ const qmap={}; nodes.forEach(n=>qmap[n.id]=n.quality);
+ const ord={good:0,warn:1,bad:2,down:3,neutral:0}, nm=['good','warn','bad','down'];
+ const comb=(x,y)=>nm[Math.max(ord[x]==null?3:ord[x], ord[y]==null?3:ord[y])];
+ const inet=('inet_up' in m)?m.inet_up:true;
+ const edges=(MAPEDGES&&MAPEDGES.edges)?MAPEDGES.edges:autoEdges(m);
+ const links=edges.map(function(p){
+   const fr=p[0],to=p[1]; let lab=null;
+   if((fr==='modem'&&to==='cisco')||(fr==='cisco'&&to==='modem')){ if(inet) lab='↓ '+fmt(m.wan_down,1)+'  ↑ '+fmt(m.wan_up,1)+' Mb/s'; }
+   return {from:fr,to:to,q:comb(qmap[fr],qmap[to]),label:lab};
+ });
+ return {nodes,links};
+}
+function nodeIconHtml(nd){
+ return '<div class="lnode" data-id="'+nd.id+'" data-q="'+nd.quality+'"><div class="lwave"></div><div class="lwave"></div><div class="lwave"></div>'+
+  '<div class="ldot"><svg><use href="#'+(nd.icon||'ic-tower')+'"/></svg></div>'+
+  '<div class="llabel"><b>'+nd.name+'</b><span class="li">'+(nd.info||'')+'</span></div></div>';
+}
+function nodeDivIcon(nd){ return L.divIcon({className:'',html:nodeIconHtml(nd),iconSize:[52,52],iconAnchor:[26,26]}); }
+function ensureMap(){
+ if(LMAP) return true;
+ if(typeof L==='undefined') return false;
+ const v=MAPPOS._view||{lat:-15.6,lng:-47.8,zoom:4};
+ LMAP=L.map('lmap',{zoomControl:true,attributionControl:true,worldCopyJump:true}).setView([v.lat,v.lng],v.zoom);
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap · © CARTO'}).addTo(LMAP);
+ return true;
+}
+function lcolor(q){ return q==='good'?'#2ee6a6':q==='warn'?'#ffb43a':'#ff5a6a'; }
+function spreadAround(c,i,n){ const d=0.0016, ang=-Math.PI/2+i*(2*Math.PI/Math.max(1,n)); return [c.lat+(i===0?0:d*Math.sin(ang)), c.lng+(i===0?0:d*Math.cos(ang))]; }
+function drawLinks(){
+ if(!LMAP)return;
+ MAPLINKS.forEach(lk=>{ const key=[lk.from,lk.to].sort().join('|'), a=LMARKERS[lk.from], b=LMARKERS[lk.to]; if(!a||!b)return;
+  const q=lk.q||'down', col=lcolor(q), w=q==='down'?2:4, dash=q==='down'?'7 9':'2 13';
+  let pl=LLINES[key];
+  if(!pl){ pl=L.polyline([a.getLatLng(),b.getLatLng()],{interactive:false,className:'llink q-'+q,color:col,weight:w,opacity:q==='down'?.5:.95,dashArray:dash}); pl.addTo(LMAP); LLINES[key]=pl; }
+  else{ pl.setLatLngs([a.getLatLng(),b.getLatLng()]); pl.setStyle({color:col,weight:w,opacity:q==='down'?.5:.95,dashArray:dash}); const el=pl.getElement(); if(el)el.setAttribute('class',((el.getAttribute('class')||'').replace(/\sq-\w+/g,''))+' q-'+q); }
+  if(lk.label){ if(pl.getTooltip()){ pl.setTooltipContent(lk.label); } else { pl.bindTooltip(lk.label,{permanent:true,direction:'center',className:'llabel-link',opacity:1}); } }
+  else if(pl.getTooltip()){ pl.unbindTooltip(); }
+ });
+ const keys=MAPLINKS.map(l=>[l.from,l.to].sort().join('|'));
+ Object.keys(LLINES).forEach(k=>{ if(keys.indexOf(k)<0){ LMAP.removeLayer(LLINES[k]); delete LLINES[k]; } });
+}
+function buildMap(){
+ if(!ensureMap()){ const st=$('map-stat'); if(st){st.textContent='mapa indisponível (sem internet?)';st.style.color='#ffb43a';} return; }
+ const m=lastM; if(!m)return;
+ const top=mapTopology(m); MAPLINKS=top.links;
+ const c=LMAP.getCenter();
+ top.nodes.forEach((nd,i)=>{ const sp=MAPPOS[nd.id], ll=(sp&&sp.lat!=null)?[sp.lat,sp.lng]:spreadAround(c,i,top.nodes.length);
+  let mk=LMARKERS[nd.id];
+  if(!mk){ mk=L.marker(ll,{icon:nodeDivIcon(nd),draggable:true,autoPan:true,keyboard:false});
+   mk.on('dragstart',function(){ mk._drag=true; });
+   mk.on('drag',drawLinks);
+   mk.on('dragend',function(){ const p=mk.getLatLng(); MAPPOS[nd.id]={lat:+p.lat.toFixed(6),lng:+p.lng.toFixed(6)}; mapSaveOne(nd.id); drawLinks(); setTimeout(function(){mk._drag=false;},160); });
+   mk.on('click',function(){ if(mk._drag)return; if(mapEdit) edgeClick(nd.id); else openMapNode(nd.id); });
+   mk.addTo(LMAP); LMARKERS[nd.id]=mk; }
+  else if(sp&&sp.lat!=null){ mk.setLatLng(ll); } });
+ Object.keys(LMARKERS).forEach(id=>{ if(!top.nodes.find(n=>n.id===id)){ LMAP.removeLayer(LMARKERS[id]); delete LMARKERS[id]; } });
+ drawLinks();
+ mapBuilt=true;
+ setTimeout(function(){ if(LMAP) LMAP.invalidateSize(); },60);
+ renderMapData(m);
+}
+function updateHud(m){
+ const h=$('maphud'); if(!h||!m)return;
+ const inet=('inet_up' in m)?m.inet_up:true;
+ const rows=[
+  ['Internet', inet?('↓ '+fmt(m.wan_down,1)+' · ↑ '+fmt(m.wan_up,1)):'🔴 caiu', inet?'':'red'],
+  ['Saturação LAN', fmt(m.lan_sat,0)+'%', (m.lan_sat>75?'red':(m.lan_sat>40?'amber':''))],
+  ['Hosts online', (m.hosts_up||0)+'/'+(m.hosts_total||0), ''],
+  ['CPU / Mem', Math.round(m.cpu||0)+'% / '+Math.round(m.mem_pct||0)+'%', ((m.cpu>90||m.mem_pct>92)?'red':'')]
+ ];
+ h.innerHTML='<div class="hh">📊 visão geral</div>'+rows.map(r=>'<div class="hr"><span class="k">'+r[0]+'</span><span class="v"'+(r[2]?' style="color:var(--'+r[2]+')"':'')+'>'+r[1]+'</span></div>').join('');
+}
+function renderMapData(m){
+ if(!mapBuilt||!m)return;
+ const top=mapTopology(m); MAPLINKS=top.links;
+ top.nodes.forEach(nd=>{ const mk=LMARKERS[nd.id]; if(mk&&mk._icon){ const el=mk._icon.querySelector('.lnode'); if(el){ el.setAttribute('data-q',nd.quality); const li=el.querySelector('.li'); if(li)li.textContent=nd.info||''; } } });
+ drawLinks();
+ updateHud(m);
+ const st=$('map-stat'); if(st){ const a=m.ant||{}, rem=a.remotes||[], down=rem.filter(r=>r.quality==='down').length; st.textContent=rem.length?(down?('⚠ '+down+' enlace(s) fora'):(rem.length+' enlaces OK')):'sem enlaces'; st.style.color=down?'#ff5a6a':'#2ee6a6'; }
+}
+function mapSaveOne(id){ const p=MAPPOS[id]; if(!p)return; fetch('/api/mappos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,lat:p.lat,lng:p.lng})}).catch(()=>{}); }
+function mapSaveAll(){
+ const all={}; Object.keys(LMARKERS).forEach(id=>{ const ll=LMARKERS[id].getLatLng(); all[id]={lat:+ll.lat.toFixed(6),lng:+ll.lng.toFixed(6)}; MAPPOS[id]=all[id]; });
+ let view=null; if(LMAP){ const c=LMAP.getCenter(); view={lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:LMAP.getZoom()}; MAPPOS._view=view; }
+ const btn=$('map-save');
+ fetch('/api/mappos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:all,view:view})})
+  .then(r=>r.json()).then(d=>{ if(btn){ btn.textContent=d.ok?'✓ Salvo':'⚠ erro'; btn.classList.toggle('ok',!!d.ok); setTimeout(function(){btn.textContent='💾 Salvar localizações';btn.classList.remove('ok');},1800);} })
+  .catch(()=>{ if(btn){btn.textContent='⚠ falhou';setTimeout(function(){btn.textContent='💾 Salvar localizações';},1800);} });
+}
+function mapFit(){ if(!LMAP)return; const ms=Object.keys(LMARKERS).map(k=>LMARKERS[k]); if(!ms.length)return; try{ LMAP.fitBounds(L.featureGroup(ms).getBounds().pad(0.3)); }catch(e){} }
+function openMapNode(id){
+ const m=lastM; if(!m)return;
+ let title=id; const r=[];
+ if(id==='modem'){
+  title='Modem · Internet';
+  r.push(drow('Status', ('inet_up' in m)?(m.inet_up?'🟢 online':'🔴 caiu'):'—'));
+  r.push(drow('Download', fmt(m.wan_down,2)+' Mb/s'));
+  r.push(drow('Upload', fmt(m.wan_up,2)+' Mb/s'));
+ } else if(id==='cisco'){
+  title='Cisco 2911 · Roteador';
+  r.push(drow('Status', m.ok?'🟢 online':'🔴 sem dados'));
+  r.push(drow('CPU', fmt(m.cpu,0)+'%'));
+  r.push(drow('Memória', fmt(m.mem_pct,0)+'%'));
+  r.push(drow('Saturação LAN', fmt(m.lan_sat,1)+'%'));
+  r.push(drow('Hosts online', (m.hosts_up||0)+'/'+(m.hosts_total||0)));
+  r.push(drow('NAT', m.nat!=null?(m.nat.toLocaleString('pt-BR')+' sessões'):null));
+  r.push(drow('Drops', (m.drops_ps||0)+'/s'));
+ } else if((MAPNODES||[]).find(x=>x.id===id)){
+  const cn=(MAPNODES||[]).find(x=>x.id===id);
+  title=cn.name+(cn.ip?(' · '+cn.ip):'');
+  r.push(drow('Tipo','Nó manual'));
+  if(cn.ip){ r.push(drow('IP',cn.ip)); const h=(m.hosts||[]).find(x=>x.ip===cn.ip); if(h){ r.push(drow('Status',h.up?'🟢 online':'🔴 offline')); r.push(drow('MAC',h.mac)); r.push(drow('Fabricante',h.vendor)); r.push(drow('Latência',h.ms!=null?(h.ms+' ms'):null)); } else r.push(drow('Status','🔴 fora do ARP')); }
+  r.push('<div class="dsec"></div>');
+  r.push('<button class="mapbtn" style="border-color:var(--red);color:var(--red)" onclick="removeMapNode(\''+id+'\')">🗑 Remover este nó</button>');
+ } else {
+  const h=(m.hosts||[]).find(x=>x.ip===id);
+  const dvr=((m.cams&&m.cams.dvrs)||[]).find(x=>x.ip===id);
+  const ant=((m.ant&&m.ant.remotes)||[]).find(x=>x.ip===id);
+  const base=(m.ant&&m.ant.base&&m.ant.base.ip===id)?m.ant.base:null;
+  title=((h&&h.name)||(dvr&&dvr.name)||(ant&&ant.name)||(base&&base.name)||id)+' · '+id;
+  if(h){
+   r.push(drow('Nome',h.name)); r.push(drow('IP',h.ip)); r.push(drow('MAC',h.mac)); r.push(drow('Fabricante',h.vendor));
+   r.push(drow('Status',h.up?'🟢 online':'🔴 offline'));
+   r.push(drow('Latência',h.ms!=null?(h.ms+' ms'):(h.up?'(ARP recente)':'—')));
+   if(h.dhcp_type){ r.push(drow('DHCP',h.dhcp_type==='Manual'?'Reserva fixa':'Dinâmico')); r.push(drow('Lease',h.lease)); }
+  } else { r.push(drow('IP',id)); r.push(drow('Status','🔴 offline / fora do ARP')); }
+  if(dvr){ r.push('<div class="dsec">📹 DVR · RTSP / HD</div>'); r.push(drow('RTSP',dvr.status+(dvr.code?(' ('+dvr.code+')'):''))); r.push(drow('Canais',dvr.channels)); r.push(drow('Codec',dvr.codec)); r.push(drow('Latência',dvr.ms!=null?(dvr.ms+' ms'):null)); if(dvr.hdd)r.push(drow('HD',dvr.hdd.disks+' disco(s) · '+(dvr.hdd.error?'⚠ ERRO':'saudável'))); }
+  if(ant){ r.push('<div class="dsec">📡 Enlace · SNMP</div>'); r.push(drow('Sinal',ant.signal||(ant.dbm!=null?(ant.dbm+' dBm'):null))); r.push(drow('Taxa',ant.rate)); r.push(drow('CCQ',ant.ccq!=null?(ant.ccq+'%'):null)); r.push(drow('Qualidade',ant.quality)); }
+  if(base){ r.push('<div class="dsec">📡 Antena base · SNMP</div>'); r.push(drow('Modelo',base.model)); r.push(drow('SSID',base.ssid)); r.push(drow('Canal',base.channel)); r.push(drow('SNR',base.snr)); }
+ }
+ $('mtitle').textContent=title;
+ $('mbody').innerHTML=r.filter(Boolean).join('');
+ $('modal').style.display='flex';
+}
+function currentEdgeSet(){
+ const pairs=(MAPEDGES&&MAPEDGES.edges)?MAPEDGES.edges:autoEdges(lastM||{});
+ const s=new Set(); pairs.forEach(p=>s.add([p[0],p[1]].sort().join('|'))); return s;
+}
+function saveEdges(){ if(!MAPEDGES)return; fetch('/api/maplinks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({edges:MAPEDGES.edges})}).catch(()=>{}); }
+function toggleEdge(a,b){
+ const s=currentEdgeSet(), k=[a,b].sort().join('|');
+ if(s.has(k))s.delete(k); else s.add(k);
+ MAPEDGES={edges:[...s].map(x=>x.split('|'))};
+ saveEdges(); if(lastM) renderMapData(lastM);
+}
+function resetEdges(){
+ if(!confirm('Restaurar os enlaces automáticos (Modem→Roteador→antenas e DVRs→Roteador)?'))return;
+ MAPEDGES=null;
+ fetch('/api/maplinks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reset:true})}).catch(()=>{});
+ if(lastM) renderMapData(lastM);
+}
+async function loadMapEdges(){ try{ MAPEDGES=await(await fetch('/api/maplinks',{cache:'no-store'})).json(); }catch(e){ MAPEDGES=null; } }
+async function loadMapNodes(){ try{ const j=await(await fetch('/api/mapnodes',{cache:'no-store'})).json(); MAPNODES=Array.isArray(j)?j:[]; }catch(e){ MAPNODES=[]; } }
+function saveMapNodes(){ fetch('/api/mapnodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nodes:MAPNODES})}).catch(()=>{}); }
+function addMapNode(){
+ const m=lastM||{};
+ const hosts=((m.hosts)||[]).slice().sort((a,b)=>(parseInt((a.ip||'').split('.')[3]||0)-parseInt((b.ip||'').split('.')[3]||0)));
+ let opts='<option value="">— sem IP (nó decorativo) —</option>';
+ hosts.forEach(function(h){ opts+='<option value="'+h.ip+'" data-name="'+(h.name||'').replace(/"/g,'')+'">'+(h.name||'host')+' — '+h.ip+(h.vendor?(' · '+h.vendor):'')+'</option>'; });
+ opts+='<option value="__c">outro (digitar IP manual)</option>';
+ const ist='background:#0c1622;border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:7px 9px;width:100%;box-sizing:border-box;font-size:13px';
+ const lab='font-size:12px;color:var(--mut);margin:0 0 4px';
+ $('mtitle').textContent='Novo nó no mapa';
+ $('mbody').innerHTML=
+  '<div style="margin-bottom:10px"><div style="'+lab+'">Nome</div><input id="nn-name" type="text" placeholder="ex: Impressora recepção" style="'+ist+'"></div>'+
+  '<div style="margin-bottom:10px"><div style="'+lab+'">Vincular a um host (p/ status ao vivo) — opcional</div><select id="nn-host" style="'+ist+'">'+opts+'</select></div>'+
+  '<div id="nn-cw" style="display:none;margin-bottom:10px"><div style="'+lab+'">IP manual</div><input id="nn-ip" type="text" placeholder="192.168.2.x" style="'+ist+'"></div>'+
+  '<div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end"><button class="mapbtn" onclick="closeModal()">Cancelar</button><button class="mapbtn ok" onclick="doAddNode()">Criar nó</button></div>';
+ $('modal').style.display='flex';
+ const sel=$('nn-host'); if(sel) sel.onchange=function(){ $('nn-cw').style.display=(sel.value==='__c')?'':'none'; const dn=sel.options[sel.selectedIndex].getAttribute('data-name'), ne=$('nn-name'); if(dn&&ne&&!ne.value.trim())ne.value=dn; };
+ setTimeout(function(){ const ne=$('nn-name'); if(ne)ne.focus(); },60);
+}
+function doAddNode(){
+ const ne=$('nn-name'), sel=$('nn-host');
+ const nm=(ne&&ne.value.trim())||'Nó';
+ let ip='';
+ if(sel){ if(sel.value==='__c'){ const ie=$('nn-ip'); ip=(ie&&ie.value.trim())||''; } else ip=sel.value; }
+ let icon='';
+ if(ip){ const h=((lastM&&lastM.hosts)||[]).find(x=>x.ip===ip); if(h&&typeof iconFor==='function') icon=iconFor(h); }
+ if(!icon||icon==='ic-net'){ const lo=nm.toLowerCase(); icon=/switch|\bsw\b/.test(lo)?'ic-switch':(/\bap\b|wi-?fi|wireless|antena|r[áa]dio|enlace|access/.test(lo)?'ic-tower':(/impress|printer/.test(lo)?'ic-printer':(/pr[ée]dio|galp|casa|loja|sala|matriz/.test(lo)?'ic-building':'ic-net'))); }
+ const id='u'+Date.now();
+ MAPNODES=(MAPNODES||[]); MAPNODES.push({id:id,name:nm,ip:ip,icon:icon}); saveMapNodes();
+ if(LMAP){ const c=LMAP.getCenter(); MAPPOS[id]={lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6)}; mapSaveOne(id); }
+ closeModal(); buildMap();
+}
+function removeMapNode(id){
+ if(!confirm('Remover este nó manual do mapa?'))return;
+ MAPNODES=(MAPNODES||[]).filter(n=>n.id!==id); saveMapNodes();
+ const s=currentEdgeSet(); let ch=false; [...s].forEach(k=>{ const p=k.split('|'); if(p[0]===id||p[1]===id){ s.delete(k); ch=true; } });
+ if(ch){ MAPEDGES={edges:[...s].map(x=>x.split('|'))}; saveEdges(); }
+ closeModal(); buildMap();
+}
+function markSel(id,on){ const mk=LMARKERS[id]; if(mk&&mk._icon){ const el=mk._icon.querySelector('.lnode'); if(el) el.classList.toggle('sel',on); } }
+function edgeClick(id){
+ if(mapSel===null){ mapSel=id; markSel(id,true); return; }
+ if(mapSel===id){ markSel(id,false); mapSel=null; return; }
+ toggleEdge(mapSel,id); markSel(mapSel,false); mapSel=null;
+}
+function setMapDrag(on){ Object.keys(LMARKERS).forEach(id=>{ const mk=LMARKERS[id]; if(mk&&mk.dragging){ if(on)mk.dragging.enable(); else mk.dragging.disable(); } }); }
+function toggleEdgeEdit(){
+ mapEdit=!mapEdit;
+ if(mapSel){ markSel(mapSel,false); mapSel=null; }
+ setMapDrag(!mapEdit);
+ const btn=$('map-edges'); if(btn){ btn.classList.toggle('ok',mapEdit); btn.textContent=mapEdit?'✓ Enlaces':'🔗 Enlaces'; }
+ const au=$('map-edges-auto'); if(au) au.style.display=mapEdit?'':'none';
+ const h=$('maphint'); if(h) h.textContent = mapEdit ? '🔗 Modo enlaces: clique em 2 nós para criar/remover a ligação.' : '📡 Arraste cada nó para o local real · depois clique em 💾 Salvar localizações.';
+}
+function showTab(t){
+ curTab=t;
+ document.querySelectorAll('.tabpanel').forEach(p=>{p.style.display=(p.dataset.tab===t)?'':'none';});
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+ try{localStorage.setItem('tab',t);}catch(e){}
+ if(t==='rede') loadHist();
+ if(t==='geral'&&lastM) drawSpark(lastM.hist);
+ if(t==='mapa'){ if(!mapBuilt) buildMap(); else { if(LMAP) setTimeout(function(){LMAP.invalidateSize();},60); if(lastM) renderMapData(lastM); } }
+}
+function drow(k,v){return (v==null||v===''||v==='?')?'':'<div class="drow"><span class="dk">'+k+'</span><span class="dv">'+v+'</span></div>';}
+function openHost(ip){
+ const m=lastM; if(!m)return;
+ const h=(m.hosts||[]).find(x=>x.ip===ip); if(!h)return;
+ const dvr=((m.cams&&m.cams.dvrs)||[]).find(x=>x.ip===ip);
+ const ant=((m.ant&&m.ant.remotes)||[]).find(x=>x.ip===ip);
+ const base=(m.ant&&m.ant.base&&m.ant.base.ip===ip)?m.ant.base:null;
+ let r=[];
+ r.push(drow('Nome',h.name)); r.push(drow('IP',h.ip)); r.push(drow('MAC',h.mac)); r.push(drow('Fabricante',h.vendor));
+ r.push(drow('Status',h.up?'🟢 online':'🔴 offline'));
+ r.push(drow('Latência',h.ms!=null?h.ms+' ms':(h.up?'(ARP recente)':'—')));
+ r.push(drow('Visto no ARP',h.age!=null?('há '+h.age+' min'):null));
+ r.push('<div class="dsec">DHCP</div>');
+ if(h.dhcp_type){ r.push(drow('Tipo',h.dhcp_type==='Manual'?'Reserva (fixo)':'Dinâmico (Automatic)')); r.push(drow('Lease',h.lease)); r.push(drow('Client-ID',h.cid)); }
+ else r.push(drow('Tipo','estático / fora do pool'));
+ if(dvr){ r.push('<div class="dsec">📹 DVR · RTSP/HD</div>'); r.push(drow('Canais',dvr.channels)); r.push(drow('RTSP',dvr.status+' ('+(dvr.code||'')+')')); r.push(drow('Codec',dvr.codec)); r.push(drow('Latência RTSP',dvr.ms!=null?dvr.ms+' ms':null)); if(dvr.hdd)r.push(drow('HD',dvr.hdd.disks+' disco(s) · '+(dvr.hdd.error?'⚠ ERRO':'saudável'))); }
+ if(ant){ r.push('<div class="dsec">📡 Enlace · SNMP</div>'); r.push(drow('Sinal',ant.signal||(ant.dbm!=null?ant.dbm+' dBm':null))); r.push(drow('Taxa',ant.rate)); r.push(drow('CCQ',ant.ccq!=null?ant.ccq+'%':null)); r.push(drow('Qualidade',ant.quality)); }
+ if(base){ r.push('<div class="dsec">📡 Antena base · SNMP</div>'); r.push(drow('Modelo',base.model)); r.push(drow('SSID',base.ssid)); r.push(drow('Canal',base.channel)); r.push(drow('SNR',base.snr)); }
+ $('mtitle').textContent=h.name+' · '+h.ip;
+ $('mbody').innerHTML=r.filter(Boolean).join('');
+ $('modal').style.display='flex';
+}
+function closeModal(){$('modal').style.display='none';}
+function rebootDvr(ip,nm){
+ if(!confirm('Reiniciar '+nm+' ('+ip+')?\nAs câmeras dele ficam ~1-2 min fora e voltam sozinhas.'))return;
+ fetch('/api/dvr_reboot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:ip})})
+  .then(r=>r.json()).then(d=>alert((d.ok?'✅ ':'⚠️ ')+nm+': '+d.msg)).catch(()=>alert('Falha ao enviar o comando.'));
+}
+async function tick(){
+ let m;
+ try{ m=await(await fetch('/api/metrics',{cache:'no-store'})).json(); }
+ catch(e){ $('subhead').textContent='servidor inacessível'; setSf('ovr','red'); return; }
+ lastM=m;
+ if(m.ok){ lastOk=Date.now(); $('updtime').textContent=new Date().toLocaleTimeString('pt-BR'); }
+ $('subhead').textContent=m.ok?('online · '+(m.hosts_up||0)+'/'+(m.hosts_total||0)+' hosts'):(m.msg||'sem dados');
+ if(m.ok){
+  $('v-cpu').innerHTML=fmt(m.cpu,0)+'<small>%</small>';$('bar-cpu').style.width=(m.cpu||0)+'%';$('bar-cpu').style.background=satColor(m.cpu);setSf('sf-cpu',lvlFromVal(m.cpu,40,70));
+  $('v-mem').innerHTML=fmt(m.mem_pct,0)+'<small>%</small>';$('bar-mem').style.width=(m.mem_pct||0)+'%';$('bar-mem').style.background='#4aa3ff';setSf('sf-mem',lvlFromVal(m.mem_pct,70,88));
+  $('v-dn').innerHTML=fmt(m.wan_down,2)+'<small>Mb/s</small>';
+  $('v-up').innerHTML=fmt(m.wan_up,2)+'<small>Mb/s</small>';
+  const sat=m.lan_sat||0;$('v-sat').innerHTML=fmt(sat,1)+'<small>%</small>';$('bar-sat').style.width=Math.min(100,sat)+'%';$('bar-sat').style.background=satColor(sat);setSf('sf-sat',lvlFromVal(sat,40,75));
+  $('x-drops').textContent=(m.drops_ps||0)+' drops/s';$('x-drops').style.color=(m.drops_ps>0?'#ff5a6a':'var(--mut)');
+  $('v-dhcp').innerHTML=(m.dhcp_leased||0)+'<small> leases</small>';$('bar-dhcp').style.width=Math.min(100,(m.dhcp_leased||0)/0.94)+'%';$('bar-dhcp').style.background='#2ee6a6';
+  $('v-nat').innerHTML=(m.nat==null?'-':m.nat.toLocaleString('pt-BR'))+'<small> sessões</small>';
+  $('f-down').textContent='↓ '+fmt(m.wan_down,2)+' Mb/s';$('f-up').textContent='↑ '+fmt(m.wan_up,2)+' Mb/s';
+  setFlow('f-dl',m.wan_down);setFlow('f-ul',m.wan_up);setFlow('f-l2',m.lan_down);setFlow('f-l3',m.lan_down);
+  $('f-satchip').setAttribute('fill',satColor(sat));$('f-sat').textContent='sat '+fmt(sat,1)+'%';
+  $('f-lan').textContent=(m.hosts_up||0)+' hosts';
+  const a=m.ant||{};const b=a.base;
+  if(b&&b.up){$('en-bname').textContent=b.name||'Base';$('en-binfo').textContent=[b.model,(b.channel?'ch '+b.channel:''),b.ssid,(b.snr?'SNR '+b.snr:'')].filter(Boolean).join(' · ');setSf('en-bsf','green');}
+  else{$('en-bname').textContent='Base sem SNMP';$('en-binfo').textContent='-';setSf('en-bsf','red');}
+  const rem=a.remotes||[];const rdown=rem.some(r=>r.quality==='down')||(b&&!b.up);const rbad=rem.some(r=>r.quality==='bad');const rwarn=rem.some(r=>r.quality==='warn');
+  $('en-stat').textContent=b&&b.up?((rbad||rdown)?'⚠ atenção':(rwarn?'atenção':'OK')):'sem dados';$('en-stat').style.color=(rbad||rdown)?'#ff5a6a':(rwarn?'#ffb43a':'#2ee6a6');
+  renderRemotes(a);
+  $('hcount').textContent=(m.hosts_up||0)+' / '+(m.hosts_total||0)+' online';
+  $('hosts').innerHTML=(m.hosts||[]).map(h=>'<div class="host" data-ip="'+h.ip+'"><svg class="ic"><use href="#'+iconFor(h)+'"/></svg><span class="nm">'+h.name+' <span class="vd">'+(h.vendor||'')+'</span></span><span class="ip">'+h.ip+'</span><span class="d" style="background:'+(h.up?'#2ee6a6':'#ff5a6a')+';box-shadow:0 0 6px '+(h.up?'#2ee6a6':'#ff5a6a')+'"></span></div>').join('');
+  drawSpark(m.hist);
+  let ov='green'; if(m.cpu>90||m.mem_pct>92||rdown)ov='red'; else if(rbad||rwarn||(m.drops_ps>0)||sat>75)ov='amber'; setSf('ovr',ov);
+ }
+ renderDvrs(m.cams); renderAlerts(m.alerts);
+ if(curTab==='mapa'){ if(!mapBuilt) buildMap(); else renderMapData(m); }
+ const ib=$('inet-badge'); if(ib){ if('inet_up' in m){ ib.textContent=m.inet_up?'🟢 internet ok':'🔴 internet caiu'; ib.style.color=m.inet_up?'#2ee6a6':'#ff5a6a'; } else { ib.textContent=''; } }
+ const camsDown=((m.cams&&m.cams.dvrs)||[]).some(v=>v.status==='down'), hddErr=((m.cams&&m.cams.dvrs)||[]).some(v=>v.hdd&&v.hdd.error), inetDown=('inet_up' in m)&&!m.inet_up;
+ if(!m.ok||camsDown||hddErr||inetDown) setSf('ovr','red');
+}
+function tickAgo(){
+ $('clock').textContent=new Date().toLocaleTimeString('pt-BR');
+ if(!lastOk){return;}
+ const s=Math.round((Date.now()-lastOk)/1000);
+ $('updago').textContent='há '+s+'s';
+ $('updago').style.color=s>15?'#ff5a6a':s>8?'#ffb43a':'#8295ad';
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+{const _s=$('map-save'); if(_s)_s.onclick=mapSaveAll; const _f=$('map-fit'); if(_f)_f.onclick=mapFit; const _e=$('map-edges'); if(_e)_e.onclick=toggleEdgeEdit; const _ea=$('map-edges-auto'); if(_ea)_ea.onclick=resetEdges; const _an=$('map-addnode'); if(_an)_an.onclick=addMapNode;}
+Promise.all([loadMapPos(),loadMapEdges(),loadMapNodes()]).then(()=>{ if(LMAP&&MAPPOS._view){ LMAP.setView([MAPPOS._view.lat,MAPPOS._view.lng],MAPPOS._view.zoom); } if(curTab==='mapa'){ mapBuilt=false; buildMap(); } });
+showTab(localStorage.getItem('tab')||'geral');
+$('hosts').addEventListener('click',e=>{const el=e.target.closest('.host'); if(el&&el.dataset.ip)openHost(el.dataset.ip);});
+$('dvrs').addEventListener('click',e=>{const b=e.target.closest('.rebootbtn'); if(b)rebootDvr(b.dataset.ip,b.dataset.nm);});
+$('mclose').onclick=closeModal; $('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+setInterval(tickAgo,1000);setInterval(tick,2500);tick();
+setupHist();loadHist();setInterval(loadHist,60000);
+function dnsName(ip){ try{ const h=((lastM&&lastM.hosts)||[]).find(x=>x.ip===ip); return h?h.name:''; }catch(e){ return ''; } }
+function dnsDur(s){ s=s||0; if(s<3600)return Math.floor(s/60)+'min'; if(s<86400)return (s/3600).toFixed(1)+'h'; return (s/86400).toFixed(1)+'d'; }
+function loadDns(){
+ fetch('/api/dns',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  const box=$('dnsbox'); if(!box)return;
+  if(!d||!d.stats){ box.textContent='sem dados do DNS ainda…'; return; }
+  const s=d.stats, up=$('dns-up'); if(up) up.textContent=dnsDur(d.uptime)+' · '+d.hosts+' nomes';
+  let h='<div style="margin-bottom:8px;color:#8295ad">🏠 <b style="color:#e8eef7">'+(s.local||0).toLocaleString('pt-BR')+'</b> locais · ↗ <b style="color:#e8eef7">'+(s.fwd||0).toLocaleString('pt-BR')+'</b> forward · <b style="color:#e8eef7">'+(s.err||0)+'</b> erros</div>';
+  const top=d.top_clients||[]; const max=(top[0]&&top[0].n)||1;
+  if(top.length){
+   h+='<div style="font-size:11px;color:#8295ad;text-transform:uppercase;letter-spacing:.4px;margin:6px 0 4px">Top clientes DNS</div>';
+   top.forEach(c=>{ const nm=dnsName(c.ip); const pct=Math.max(3,Math.round(100*c.n/max));
+    h+='<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px">'
+      +'<span style="flex:0 0 44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,monospace">'+c.ip+(nm?' <span style="color:#8295ad">'+nm+'</span>':'')+'</span>'
+      +'<span style="flex:1;height:8px;background:#0c1622;border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:'+pct+'%;background:#2ee6a6"></i></span>'
+      +'<span style="flex:0 0 auto;color:#8295ad;min-width:46px;text-align:right">'+c.n.toLocaleString('pt-BR')+'</span></div>';
+   });
+  }
+  box.innerHTML=h;
+ }).catch(()=>{});
+}
+loadDns();setInterval(loadDns,15000);
+function omEsc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function loadOmada(){
+ fetch('/api/omada',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+  var box=$('omadabox'); if(!box)return; var b=$('omada-badge');
+  if(!d||!d.enabled){ if(b)b.textContent='off'; box.textContent='controlador Omada não configurado.'; return; }
+  var aps=d.aps||[], up=aps.filter(function(a){return a.up;}).length;
+  if(b) b.textContent = aps.length? (up+'/'+aps.length+' on') : (d.site||'0 APs');
+  if(d.err){ box.innerHTML='<div style="color:#fbbd23">⚠ '+omEsc(d.err)+'</div>'; return; }
+  if(!aps.length){ box.innerHTML='<div style="color:#8295ad">Site <b>'+omEsc(d.site||'')+'</b> — nenhum AP adotado ainda. Quando os EAP225 chegarem, adote em <a href="https://'+location.hostname+':8043" style="color:#37b6ff">:8043</a> e eles aparecem aqui.</div>'; return; }
+  var h='';
+  aps.forEach(function(a){ var dot=a.up?'#36d399':'#f87272';
+   h+='<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px">'
+     +'<span style="width:9px;height:9px;border-radius:50%;background:'+dot+';flex:0 0 auto"></span>'
+     +'<span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>'+omEsc(a.name)+'</b> <span style="color:#8295ad">'+omEsc(a.model||a.type||'')+'</span></span>'
+     +'<span style="color:#8295ad;white-space:nowrap">'+(a.clients!=null?a.clients+' cli':'')+'</span></div>';
+  });
+  box.innerHTML=h;
+ }).catch(function(){});
+}
+loadOmada();setInterval(loadOmada,20000);
+window.addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(loadHist,300);});
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+</script></body></html>

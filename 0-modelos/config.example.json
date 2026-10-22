@@ -1,0 +1,95 @@
+{
+  "_LEIA": "Modelo do config.json. Copie para C:\\netmon\\config.json e troque todo <PREENCHER> e todos os IPs de exemplo (192.168.0.x / 203.0.113.x).",
+
+  "site_name": "Minha Empresa",
+  "bind": "0.0.0.0",
+  "port": 8787,
+  "interval": 5,
+  "history_days": 30,
+  "history_interval": 30,
+  "cam_interval": 30,
+  "check_inet": true,
+  "lan_cap_mbps": 1000,
+  "plink": "C:\\netmon\\plink.exe",
+
+  "rede": {
+    "servidor": "192.168.0.1",
+    "lan": "192.168.0.0/24",
+    "broadcast": "192.168.0.255",
+    "modem": "192.168.15.1",
+    "interface_servidor": "Ethernet"
+  },
+
+  "cisco": {
+    "host": "192.168.0.10",
+    "user": "<PREENCHER>",
+    "password": "<PREENCHER>",
+    "enable": "<PREENCHER>",
+    "wan_if": "GigabitEthernet0/1",
+    "lan_if": "GigabitEthernet0/0",
+    "dhcp_pool": "LAN"
+  },
+
+  "vps": {
+    "host": "203.0.113.10",
+    "nome": "VPS de vendas",
+    "sistema": "sistema de vendas"
+  },
+
+  "aps": [
+    { "nome": "AP_Escritorio", "ip": "192.168.0.21" },
+    { "nome": "AP_Deposito",   "ip": "192.168.0.22" }
+  ],
+
+  "alerts": {
+    "enabled": true,
+    "telegram": { "token": "<PREENCHER>", "chat_id": "<PREENCHER>" },
+    "confirm": 3,
+    "repeat_hours": [12, 18],
+    "cooldown_min": 15,
+    "mute": [],
+    "entrega_segredo": "<PREENCHER - texto aleatorio longo, igual ao do pendrive ABRE-GERENCIA>",
+    "rules": {
+      "cpu_pct": 90,
+      "mem_pct": 92,
+      "lan_sat_pct": 90,
+      "crc_ppm": 20,
+      "antenna_warn_dbm": -78,
+      "inet_probe": "8.8.8.8",
+      "watch_hosts": ["192.168.0.1", "192.168.0.10"]
+    }
+  },
+
+  "antenna_link": {
+    "name": "Enlace entre predios",
+    "snmp_community": "<PREENCHER>",
+    "base":    { "name": "Antena base",   "ip": "192.168.0.11" },
+    "remotes": [ { "name": "Antena remota", "ip": "192.168.0.12", "mac": "00:00:00:00:00:00" } ]
+  },
+
+  "dvrs": [
+    { "name": "DVR 1", "ip": "192.168.0.30", "user": "<PREENCHER - usuario so-leitura>", "pass": "<PREENCHER>", "channels": 8 }
+  ],
+
+  "names": {
+    "192.168.0.10": "Roteador",
+    "192.168.0.20": "Impressora"
+  },
+  "oui": {
+    "4c77.6d": "Cisco",
+    "98e5.5b": "Intelbras"
+  },
+
+  "doc": { "user": "<PREENCHER>", "pass": "<PREENCHER>" },
+
+  "omada": {
+    "_LEIA": "Opcional: so se os APs estiverem numa controladora Omada. Sem 'user', o modulo fica desligado.",
+    "host": "https://127.0.0.1:8043",
+    "cid": "<PREENCHER>",
+    "site": "<PREENCHER>",
+    "site_name": "<PREENCHER>",
+    "user": "",
+    "pass": "",
+    "interval": 30
+  }
+}

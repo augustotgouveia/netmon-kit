@@ -1,0 +1,217 @@
+<!doctype html><html lang="pt-br"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0d141f">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NOC">
+<title>Câmeras · {{SITE}}</title>
+<style>
+:root{--bg:#080b12;--p1:#121a27;--p2:#0d141f;--line:#1f2a3a;--txt:#e8eef7;--mut:#8295ad;--teal:#2ee6a6;--blue:#4aa3ff}
+*{box-sizing:border-box}
+body{margin:0;background:#070a10;color:var(--txt);font:14px/1.45 'Segoe UI',system-ui,sans-serif}
+.bar{display:flex;align-items:center;gap:12px;padding:11px 16px;background:linear-gradient(180deg,var(--p1),var(--p2));border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;z-index:5}
+.bar h1{font-size:16px;margin:0;font-weight:600;white-space:nowrap}
+.bar h1 b{color:var(--teal)}
+a.back{color:var(--mut);text-decoration:none;font-size:12px;border:1px solid var(--line);padding:6px 10px;border-radius:8px}
+.chips{position:absolute;top:100%;left:0;right:0;display:none;flex-wrap:wrap;gap:10px;padding:12px 16px;max-height:76vh;overflow-y:auto;background:linear-gradient(180deg,var(--p1),var(--p2));border-bottom:1px solid var(--line);box-shadow:0 14px 26px rgba(0,0,0,.55);z-index:6}
+.bar.open .chips{display:flex}
+.cgrp{display:flex;gap:5px;align-items:center;flex-wrap:wrap;width:100%}
+.clab{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--blue);font-weight:700;border:1px solid var(--line);border-radius:6px;padding:3px 7px;background:#0c1622;white-space:nowrap}
+.chip{font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid var(--line);background:#0c1622;color:var(--mut);cursor:pointer;user-select:none}
+.chip.on{background:rgba(46,230,166,.15);border-color:var(--teal);color:var(--teal)}
+.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ctl button,.ctl select,.ctl input{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#0c1622;color:var(--txt);cursor:pointer}
+.ctl input{width:52px;cursor:text}
+.ctl .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
+.ctl button.on{background:rgba(46,230,166,.15);border-color:var(--teal);color:var(--teal)}
+.ctl small{color:var(--mut);font-size:11px}
+.capwrap{display:flex;align-items:center;gap:4px}
+#capnote{color:var(--teal);font-weight:700;white-space:nowrap}
+.grid{display:grid;gap:8px;padding:10px}
+.tile{position:relative;background:#000;border:1px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:16/9}
+.tile iframe{width:100%;height:100%;border:0;display:block;background:#000;transition:transform .2s}
+.tile.rot90 iframe{transform:rotate(90deg) scale(.5625)}
+.tile.rot180 iframe{transform:rotate(180deg)}
+.tile.rot270 iframe{transform:rotate(270deg) scale(.5625)}
+.tile .lbl{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:6px;padding:6px 9px;background:linear-gradient(0deg,rgba(0,0,0,.78),transparent);font-size:12px;font-weight:600;opacity:.92;transition:.2s}
+.tile:hover .lbl{opacity:1}
+.tile .lbl button.ed{background:rgba(46,230,166,.25)}
+.tile .lbl button.rot{background:rgba(74,163,255,.28)}
+.tile .lbl .nm{flex:1;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .lbl .tag{color:var(--blue);font-weight:700;font-size:11px}
+.tile .lbl button{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;line-height:1}
+.empty{grid-column:1/-1;padding:70px 20px;text-align:center;color:var(--mut)}
+.menu{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:#0c1622;color:var(--txt);cursor:pointer;white-space:nowrap}
+.menu.on{border-color:var(--teal);color:var(--teal)}
+.ctl{margin-left:auto}
+@media (max-width:640px){
+ .bar{gap:8px;padding:9px 12px}
+ .bar h1{font-size:15px}
+ .ctl{margin-left:0;flex:1 1 100%;justify-content:flex-start;margin-top:4px}
+ .chip{padding:7px 11px}
+}
+</style></head><body>
+<div class="bar" id="bar">
+ <h1>📹 <b>Câmeras</b> · {{SITE}}</h1>
+ <a class="back" href="/">← NOC</a>
+ <button class="menu" id="menu">☰ Câmeras</button>
+ <div class="chips" id="chips"></div>
+ <div class="ctl">
+   <button id="all">Todas</button><button id="none">Limpar</button><button id="reloadall" title="Recarregar todos">↻ tudo</button>
+   <span class="sep"></span>
+   <button id="tour" title="Tour: cicla entre as câmeras selecionadas">▶ Tour</button>
+   <input id="toursecs" type="number" min="3" max="300" value="8" title="segundos por passo"><small>s</small>
+   <select id="tourn" title="câmeras por passo"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="6">6×</option><option value="9">9×</option></select>
+   <span class="sep"></span>
+   <span class="capwrap" title="Trava anti-travamento: máximo de câmeras VIVAS por DVR ao mesmo tempo. O excedente entra em rodízio automático. 0 = sem limite."><span>🛡️</span><input id="dvrcap" type="number" min="0" max="32" value="8"><small>máx/DVR</small></span>
+   <small id="capnote"></small>
+   <span class="sep"></span>
+   <select id="cols"><option value="auto">Auto</option><option value="2">2 col</option><option value="3">3 col</option><option value="4">4 col</option></select>
+ </div>
+</div>
+<div class="grid" id="grid"></div>
+<script>
+// via Caddy (https://noc) usa o caminho proxyado /go2; acesso direto (8787) usa :1984
+const GO2RTC = (location.port==='8787') ? location.protocol+'//'+location.hostname+':1984' : location.origin+'/go2';
+const DVRS = [
+  {key:'138', name:'DVR 1', pfx:'cam',   ch:16},
+  {key:'154', name:'DVR 2', pfx:'d154_', ch:8},
+  {key:'142', name:'DVR 3', pfx:'d142_', ch:32},
+];
+const pad2=n=>String(n).padStart(2,'0');
+const dvrOf=k=>DVRS.find(d=>d.key===k)||{name:k};
+const $=id=>document.getElementById(id);
+let cams=[], cols=localStorage.getItem('cols')||'auto', CAMNAMES={}, CAMROT={};
+let tourOn=localStorage.getItem('tourOn')==='1', tourSecs=+(localStorage.getItem('toursecs')||8), tourN=localStorage.getItem('tourn')||'1', tourIdx=0, tourTimer=null;
+let DVRCAP=localStorage.getItem('dvrcap'); DVRCAP=(DVRCAP===null)?8:(parseInt(DVRCAP)||0);
+let capIdx=0, capTimer=null, capOver=false;
+function buildDefaults(){
+  const out=[];
+  DVRS.forEach(d=>{ for(let i=1;i<=d.ch;i++){ out.push({id:d.pfx+pad2(i)+'_sd',dvr:d.key,cn:i,name:'C'+i,on:(d.key==='138'?i<=4:i<=2)}); } });
+  return out;
+}
+function buildCams(){
+  const defs=buildDefaults();
+  const saved=JSON.parse(localStorage.getItem('cams')||'null'); const by={}; (saved||[]).forEach(c=>by[c.id]=c);
+  // prioridade do nome: servidor (CAMNAMES) > local salvo > padrão "Cn"
+  cams=defs.map(d=>({...d, name: CAMNAMES[d.id] || (by[d.id]&&by[d.id].name) || d.name, on: by[d.id]?!!by[d.id].on:d.on}));
+}
+function save(){localStorage.setItem('cams',JSON.stringify(cams.map(c=>({id:c.id,name:c.name,on:c.on}))));localStorage.setItem('cols',cols);}
+function urlFor(c){return GO2RTC+'/stream.html?src='+c.id;}
+function renderChips(){
+ const box=$('chips'); box.innerHTML='';
+ DVRS.forEach(d=>{
+   const list=cams.filter(c=>c.dvr===d.key); if(!list.length)return;
+   const g=document.createElement('div'); g.className='cgrp';
+   const lab=document.createElement('span'); lab.className='clab'; lab.textContent=d.name; g.appendChild(lab);
+   list.forEach(c=>{ const b=document.createElement('div'); b.className='chip'+(c.on?' on':''); b.textContent=c.name; b.onclick=()=>{c.on=!c.on;save();render();}; g.appendChild(b); });
+   box.appendChild(g);
+ });
+}
+function staggerLoad(){
+ const frames=[...document.querySelectorAll('#grid iframe')].filter(f=>f.dataset.src && f.src.indexOf('stream.html')<0);
+ let i=0; const step=()=>{ if(i>=frames.length)return; frames[i].src=frames[i].dataset.src; i++; setTimeout(step,450); }; step();
+}
+function renameCam(i){
+ const v=prompt('Nome da câmera:',cams[i].name); if(v==null)return;
+ const nm=v.trim(); cams[i].name = nm || ('C'+cams[i].cn);
+ if(nm) CAMNAMES[cams[i].id]=nm; else delete CAMNAMES[cams[i].id];
+ fetch('/api/camnames',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:cams[i].id,name:nm})}).catch(()=>{});
+ save(); render();
+}
+function rotOf(c){return parseInt(CAMROT[c.id]||0)||0;}
+function rotateCam(i,tile,btn){
+ const c=cams[i]; const deg=(rotOf(c)+90)%360;
+ if(deg) CAMROT[c.id]=deg; else delete CAMROT[c.id];
+ fetch('/api/camrot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,rot:deg})}).catch(()=>{});
+ tile.className='tile'+(deg?' rot'+deg:''); btn.textContent='⟳'+(deg?' '+deg+'°':''); btn.title='Girar vídeo (atual '+deg+'°)';
+}
+// TRAVA por DVR: nunca deixa mais que DVRCAP cameras vivas do mesmo DVR; o excedente roda em rodizio (capIdx).
+function applyCap(list){
+ capOver=false;
+ if(!DVRCAP||DVRCAP<=0) return list;
+ const byd={}, order=[];
+ list.forEach(c=>{ if(!byd[c.dvr]){byd[c.dvr]=[];order.push(c.dvr);} byd[c.dvr].push(c); });
+ const out=[];
+ order.forEach(k=>{
+   const arr=byd[k];
+   if(arr.length<=DVRCAP){ arr.forEach(c=>out.push(c)); }
+   else{ capOver=true; const start=((capIdx%arr.length)+arr.length)%arr.length; for(let j=0;j<DVRCAP;j++) out.push(arr[(start+j)%arr.length]); }
+ });
+ return out;
+}
+function makeTile(c){
+ const i=cams.indexOf(c), r=rotOf(c);
+ const t=document.createElement('div');
+ t.className='tile'+(r?' rot'+r:''); t.dataset.id=c.id; t.dataset.i=i;
+ t.innerHTML='<iframe loading="lazy" allowfullscreen data-src="'+urlFor(c)+'"></iframe><div class="lbl"><span class="tag">'+dvrOf(c.dvr).name+'</span><span class="nm">'+c.name+'</span><button class="ed" title="Renomear câmera">✏️</button><button class="rot" title="Girar vídeo 90°">⟳'+(r?' '+r+'°':'')+'</button><button class="rl" title="Recarregar">↻</button><button class="fs" title="Tela cheia">⛶</button></div>';
+ const fr=t.querySelector('iframe');
+ t.querySelector('.fs').onclick=e=>{e.stopPropagation(); if(t.requestFullscreen)t.requestFullscreen();};
+ t.querySelector('.rl').onclick=e=>{e.stopPropagation(); fr.src='about:blank'; setTimeout(()=>fr.src=fr.dataset.src,300);};
+ t.querySelector('.ed').onclick=e=>{e.stopPropagation(); renameCam(+t.dataset.i);};
+ t.querySelector('.rot').onclick=e=>{e.stopPropagation(); rotateCam(+t.dataset.i,t,t.querySelector('.rot'));};
+ t.querySelector('.nm').onclick=e=>{e.stopPropagation(); renameCam(+t.dataset.i);};
+ return t;
+}
+function updateTileLabel(t,c){
+ const nm=t.querySelector('.nm'); if(nm&&nm.textContent!==c.name) nm.textContent=c.name;
+ const r=rotOf(c), want='tile'+(r?' rot'+r:''); if(t.className!==want) t.className=want;
+ const rb=t.querySelector('.rot'); if(rb){ const lab='⟳'+(r?' '+r+'°':''); if(rb.textContent!==lab) rb.textContent=lab; }
+}
+function setupCapTimer(){
+ clearInterval(capTimer); capTimer=null;
+ if(capOver && !tourOn){ capTimer=setInterval(()=>{ capIdx+=(DVRCAP||1); render(); }, Math.max(10,tourSecs)*1000); }
+}
+function render(){
+ renderChips();
+ updateMenu();
+ const sel=cams.filter(c=>c.on), g=$('grid'), n=parseInt(tourN)||1;
+ let visible=sel;
+ if(tourOn && sel.length>n){ if(tourIdx>=sel.length)tourIdx=0; visible=[]; for(let k=0;k<n;k++) visible.push(sel[(tourIdx+k)%sel.length]); }
+ visible=applyCap(visible);
+ $('tour').textContent = tourOn ? ('⏸ Tour '+(Math.floor(tourIdx/n)+1)+'/'+Math.max(1,Math.ceil(sel.length/n))) : '▶ Tour';
+ $('tour').classList.toggle('on',tourOn);
+ $('capnote').textContent = capOver ? ('🔄 rodízio '+DVRCAP+'/DVR') : '';
+ const ncol=cols==='auto'?Math.max(1,Math.ceil(Math.sqrt(Math.max(1,visible.length)))):parseInt(cols);
+ g.style.gridTemplateColumns='repeat('+ncol+',1fr)';
+ if(!sel.length){ g.innerHTML='<div class="empty">Nenhuma câmera selecionada — toque em ☰ Câmeras (no topo) para escolher.</div>'; setupCapTimer(); return; }
+ // reconcilia por id: tiles estaveis NAO sao tocados (nao recarregam); so remove os que saem e cria os que entram
+ const wantSet=new Set(visible.map(c=>c.id));
+ [...g.children].forEach(ch=>{ if(!ch.dataset||!ch.dataset.id||!wantSet.has(ch.dataset.id)) g.removeChild(ch); });
+ const have=new Set([...g.children].map(ch=>ch.dataset.id));
+ visible.forEach(c=>{ if(!have.has(c.id)) g.appendChild(makeTile(c)); });
+ [...g.children].forEach(ch=>{ const c=cams.find(x=>x.id===ch.dataset.id); if(c) updateTileLabel(ch,c); });
+ staggerLoad();
+ setupCapTimer();
+}
+function setTour(on){
+ tourOn=on; localStorage.setItem('tourOn',on?'1':'0');
+ clearInterval(tourTimer); tourTimer=null;
+ if(on){ tourIdx=0; tourTimer=setInterval(()=>{ const sel=cams.filter(c=>c.on),n=parseInt(tourN)||1; capIdx+=(DVRCAP||1); if(sel.length>n){ tourIdx=(tourIdx+n)%sel.length; } render(); }, Math.max(3,tourSecs)*1000); }
+ render();
+}
+$('all').onclick=()=>{cams.forEach(c=>c.on=true);save();render();};
+$('none').onclick=()=>{cams.forEach(c=>c.on=false);save();render();};
+$('reloadall').onclick=()=>{document.querySelectorAll('#grid iframe').forEach(f=>f.src='about:blank'); setTimeout(staggerLoad,500);};
+$('cols').value=cols;$('cols').onchange=()=>{cols=$('cols').value;save();render();};
+$('tour').onclick=()=>setTour(!tourOn);
+$('toursecs').value=tourSecs;$('toursecs').onchange=()=>{tourSecs=Math.max(3,+$('toursecs').value||8);localStorage.setItem('toursecs',tourSecs);if(tourOn)setTour(true);};
+$('tourn').value=tourN;$('tourn').onchange=()=>{tourN=$('tourn').value;localStorage.setItem('tourn',tourN);tourIdx=0;if(tourOn)setTour(true);else render();};
+$('dvrcap').value=DVRCAP;$('dvrcap').onchange=()=>{DVRCAP=parseInt($('dvrcap').value)||0;if(DVRCAP<0)DVRCAP=0;$('dvrcap').value=DVRCAP;localStorage.setItem('dvrcap',DVRCAP);capIdx=0;render();};
+function updateMenu(){
+ const n=cams.filter(c=>c.on).length, open=$('bar').classList.contains('open');
+ const m=$('menu'); if(m){ m.textContent=open?'✕ Fechar':('☰ Câmeras ('+n+')'); m.classList.toggle('on',open); }
+}
+$('menu').onclick=(e)=>{ e.stopPropagation(); $('bar').classList.toggle('open'); updateMenu(); };
+document.addEventListener('click',e=>{ if($('bar').classList.contains('open') && !e.target.closest('#bar')){ $('bar').classList.remove('open'); updateMenu(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && $('bar').classList.contains('open')){ $('bar').classList.remove('open'); updateMenu(); } });
+async function init(){
+ try{ CAMNAMES=await(await fetch('/api/camnames',{cache:'no-store'})).json(); }catch(e){ CAMNAMES={}; }
+ try{ CAMROT=await(await fetch('/api/camrot',{cache:'no-store'})).json(); }catch(e){ CAMROT={}; }
+ buildCams();
+ if(tourOn) setTour(true); else render();
+}
+init();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+</script></body></html>

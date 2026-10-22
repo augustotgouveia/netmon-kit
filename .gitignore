@@ -1,0 +1,40 @@
+# ===== NUNCA SUBIR: configuracao e segredos reais de cada rede =====
+config.json
+dns.json
+aps-snmp.json
+go2rtc.yaml
+Caddyfile.local
+*.cred
+creds/
+rollback/
+rollback-estacoes/
+docs/
+doc.html
+DESFAZER-*.json
+RELATORIO-*.txt
+
+# ===== dados gerados em producao =====
+*.db
+*.log
+*.csv
+*-estado.json
+dns_stats.json
+wol-macs.json
+camnames.json
+camrot.json
+mappos.json
+maplinks.json
+mapnodes.json
+logs/
+
+# ===== binarios e ambiente =====
+python/
+plink.exe
+caddy.exe
+go2rtc.exe
+cacert.pem
+__pycache__/
+*.pyc
+*.zip
+*.bak*
+*-antigo-*

@@ -1,0 +1,8 @@
+{
+  "community": "<PREENCHER - 10+ caracteres, so leitura>",
+  "set_community": "<PREENCHER - diferente da de cima>",
+  "hosts": [
+    "192.168.0.21",
+    "192.168.0.22"
+  ]
+}
