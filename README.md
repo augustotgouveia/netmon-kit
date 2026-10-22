@@ -1,5 +1,7 @@
 # NetMon Kit
 
+🇧🇷 **Português** · 🇺🇸 [English](README.en.md)
+
 **Monitoramento de rede para pequena empresa, feito pra quem é dono, não pra equipe de TI.**
 
 O servidor Windows que a empresa já tem vira o centro de vigilância da rede: roteador, internet,
@@ -169,7 +171,8 @@ No piloto isso levou de **137 para 23 mensagens por dia**.
 - [ ] Módulos liga/desliga (sem Cisco, sem DVR, sem controladora...)
 - [ ] Outros roteadores: MikroTik, pfSense, roteador da operadora via SNMP
 - [ ] Painel que reúne vários clientes e atualização remota
-- [ ] Textos em inglês
+- [x] Documentação em inglês (`README.en.md`)
+- [ ] Painel e mensagens de alerta em inglês
 
 ## Contribuindo
 

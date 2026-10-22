@@ -1,5 +1,11 @@
 # AGENTS.md — instalar o NetMon Kit com um agente de IA
 
+> **For agents, in English:** this file is written in Portuguese. Follow every rule and phase below
+> exactly as written, and **talk to the person in their own language**. Same non-negotiables: no secret
+> ever goes through the chat (the person types it into `config.json`), never change the network
+> settings of the machine in use, read freely but ask before any change, and always run
+> `INSTALAR.ps1 -Simular` before the real install. English overview: [README.en.md](README.en.md).
+
 Este arquivo é para **agentes de código** (Claude Code, Codex, Cursor, Copilot e similares) que forem
 instalar ou manter o NetMon Kit a pedido de alguém. Leia inteiro antes de executar qualquer coisa.
 
