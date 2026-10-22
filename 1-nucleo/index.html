@@ -135,6 +135,7 @@ canvas{width:100%;height:90px;display:block}
 .dk{color:var(--mut);min-width:108px;flex:0 0 auto}
 .dv{color:var(--txt);font-variant-numeric:tabular-nums;word-break:break-word}
 .dsec{margin:12px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);font-weight:700}
+.osm-escuro{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.5)}
 </style></head><body>
 <svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs>
 <symbol id="ic-cloud" viewBox="0 0 24 24"><path d="M7.2 18a4 4 0 0 1 .3-8 5 5 0 0 1 9.4-1.2A3.6 3.6 0 0 1 16.8 18z"/></symbol>
@@ -230,7 +231,7 @@ canvas{width:100%;height:90px;display:block}
  </div>
  <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-net"/></svg> Dispositivos <span class="badge" id="hcount">-</span><a href="/estacoes" style="margin-left:auto;font-size:12px;font-weight:400;color:#37b6ff;text-decoration:none">🖥 estações Windows →</a></div><div class="pbody"><div class="hosts" id="hosts"></div></div></div>
  <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-net"/></svg> DNS (servidor) <span class="badge" id="dns-up">-</span> <a href="/dnslog" style="margin-left:auto;font-size:12px;font-weight:400;color:#37b6ff;text-decoration:none">🔎 consultas por host →</a></div><div class="pbody"><div id="dnsbox">carregando…</div></div></div>
- <div class="panel"><div class="phead"><svg class="ic"><use href="#ic-wifi"/></svg> APs Omada <span class="badge" id="omada-badge">-</span></div><div class="pbody"><div id="omadabox">carregando…</div></div></div>
+ <div class="panel" id="omada-panel"><div class="phead"><svg class="ic"><use href="#ic-wifi"/></svg> APs Omada <span class="badge" id="omada-badge">-</span></div><div class="pbody"><div id="omadabox">carregando…</div></div></div>
  <div class="panel">
   <div class="phead"><svg class="ic"><use href="#ic-activity"/></svg> Histórico
     <span class="hrange" id="hrange"><button data-r="1h">1h</button><button data-r="6h">6h</button><button data-r="24h">24h</button><button data-r="7d">7d</button><button data-r="30d">30d</button></span>
@@ -444,7 +445,7 @@ function ensureMap(){
  if(typeof L==='undefined') return false;
  const v=MAPPOS._view||{lat:-15.6,lng:-47.8,zoom:4};
  LMAP=L.map('lmap',{zoomControl:true,attributionControl:true,worldCopyJump:true}).setView([v.lat,v.lng],v.zoom);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap · © CARTO'}).addTo(LMAP);
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'osm-escuro',attribution:'© OpenStreetMap'}).addTo(LMAP);   /* CARTO passou a exigir chave (out/2026) - OSM direto, escurecido por CSS */
  return true;
 }
 function lcolor(q){ return q==='good'?'#2ee6a6':q==='warn'?'#ffb43a':'#ff5a6a'; }
@@ -745,7 +746,7 @@ function omEsc(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){ret
 function loadOmada(){
  fetch('/api/omada',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
   var box=$('omadabox'); if(!box)return; var b=$('omada-badge');
-  if(!d||!d.enabled){ if(b)b.textContent='off'; box.textContent='controlador Omada não configurado.'; return; }
+  if(!d||!d.enabled){ var pn=$('omada-panel'); if(pn)pn.style.display='none'; return; }   /* modulo desligado: some o painel */ var pn0=$('omada-panel'); if(pn0)pn0.style.display='';
   var aps=d.aps||[], up=aps.filter(function(a){return a.up;}).length;
   if(b) b.textContent = aps.length? (up+'/'+aps.length+' on') : (d.site||'0 APs');
   if(d.err){ box.innerHTML='<div style="color:#fbbd23">⚠ '+omEsc(d.err)+'</div>'; return; }
