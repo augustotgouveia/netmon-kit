@@ -30,6 +30,7 @@ LAN_CAP  = CFG.get("lan_cap_mbps", 100)
 BIND     = CFG.get("bind", "127.0.0.1")
 DOCAUTH  = CFG.get("doc") or {}
 SITE     = CFG.get("site_name", "Rede")   # nome que aparece no painel e nos alertas
+LAN_PREFIX = (CFG.get("rede") or {}).get("lan", "192.168.0.0/24").rsplit(".", 1)[0] + "."   # so redes /24
 OMADA_CFG = CFG.get("omada") or {}
 OMADA = {"enabled": bool(OMADA_CFG.get("user")), "site": OMADA_CFG.get("site_name", ""), "aps": [], "ts": 0, "err": ""}
 _OM = {"op": None, "token": None}
@@ -1802,7 +1803,7 @@ class H(BaseHTTPRequestHandler):
             # pendrive: a estacao manda para ca e o token fica so aqui.
             import hmac
             try:
-                if not self.client_address[0].startswith("192.168.2."):
+                if not self.client_address[0].startswith(LAN_PREFIX):
                     raise ValueError("fora da LAN")
                 n = int(self.headers.get("Content-Length", 0))
                 if n <= 0 or n > 4096:

@@ -1,7 +1,7 @@
 # ============================================================================
-#  INSTALAR-VIGIA-VPS.ps1 - ativa o vps_monitor.py no servidor .1
+#  INSTALAR-VIGIA-VPS.ps1 - ativa o vps_monitor.py no servidor do NetMon
 #
-#  Rodar NO SERVIDOR .1, como administrador, com o vps_monitor.py ja copiado
+#  Rodar NO SERVIDOR do NetMon, como administrador, com o vps_monitor.py ja copiado
 #  para C:\netmon. Faz, nesta ordem:
 #    1. confere python, script, config (token do Telegram) e cacert.pem
 #    2. roda o teste: uma medicao de cada coisa + MENSAGEM DE TESTE no Telegram

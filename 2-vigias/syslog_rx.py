@@ -1,4 +1,4 @@
-r"""syslog_rx.py - receptor de syslog (UDP 514) no servidor .1. Criado em 22/out/2026.
+r"""syslog_rx.py - receptor de syslog (UDP 514) no servidor do NetMon. Criado em 22/out/2026.
 
 POR QUE: o log dos APs EAP225 fica so na memoria e SOME quando eles reiniciam -
 justo numa travada perderiamos o que aconteceu antes. Com o log remoto apontado

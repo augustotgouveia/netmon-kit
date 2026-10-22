@@ -13,6 +13,8 @@ if (-not $ok) {
 }
 
 # DNS (NetMon-DNS): resolve 'noc' pelo proprio servidor; se falhar, mata o dns.py pendurado e religa
+# (so quando o modulo de DNS esta instalado - sem dns.json nao ha o que vigiar)
+if (-not (Test-Path (Join-Path $PSScriptRoot 'dns.json'))) { return }
 $dnsok = $false
 try {
     $r = Resolve-DnsName -Server 127.0.0.1 -Name 'noc' -Type A -DnsOnly -QuickTimeout -ErrorAction Stop

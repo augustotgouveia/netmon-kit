@@ -11,7 +11,7 @@
 #  Depois que isto rodar, o CSV do pendrive pode ser destruido - as senhas
 #  passam a viver so aqui, cifradas.
 #
-#  RODAR NO SERVIDOR .1, como Administrador:
+#  RODAR NO SERVIDOR do NetMon, como Administrador:
 #     powershell -ExecutionPolicy Bypass -File importar-credenciais.ps1 -Csv <caminho>
 #     ... -Testar        tenta conectar em cada uma depois de importar
 #     ... -ApagarCsv     apaga o CSV de origem no fim (sobrescreve antes)

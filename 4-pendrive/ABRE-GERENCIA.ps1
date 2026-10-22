@@ -17,7 +17,7 @@
 #  seria uma chave mestra: quem comprometer UMA entraria em TODAS.
 #
 #  A senha e guardada em DOIS lugares, de proposito:
-#    - no seu Telegram, mandada pelo servidor .1 (o token do bot fica la, nao
+#    - no seu Telegram, mandada pelo servidor do NetMon (o token do bot fica la, nao
 #      viaja no pendrive - o pendrive so leva um segredo que pede "manda essa
 #      mensagem", e nada alem disso)
 #    - no SENHAS-GERENCIA.csv, junto com nome, modelo, IP e MAC
@@ -535,7 +535,7 @@ if (-not $Simular) {
   Ok "rollback gravado em DESFAZER-GERENCIA-$nomeFinal.json"
 
   # ------------------------------------------------------ entrega da senha
-  # A senha vai pelo Telegram, atraves do servidor .1 - assim ela NAO fica
+  # A senha vai pelo Telegram, atraves do servidor do NetMon - assim ela NAO fica
   # gravada no pendrive. O pendrive leva so o inventario (nome, modelo, IP,
   # MAC), que nao abre porta nenhuma.
   Titulo "ENTREGA DA SENHA"
@@ -558,7 +558,7 @@ if (-not $Simular) {
         senha   = [string]$senha
       } | ConvertTo-Json -Compress
       $resp = Invoke-RestMethod -Uri $Relay -Method Post -Body $corpo -ContentType 'application/json' -TimeoutSec 25
-      if ($resp.ok) { $entregue = $true; Ok "senha enviada para o seu Telegram (pelo servidor .1)" }
+      if ($resp.ok) { $entregue = $true; Ok "senha enviada para o seu Telegram (pelo servidor do NetMon)" }
       else          { $porque = "servidor recusou: $($resp.err)" }
     } catch {
       $porque = $_.Exception.Message.Split([char]10)[0]
@@ -609,7 +609,7 @@ if (-not $Simular) {
     Aviso "TELEGRAM FALHOU. Esta senha so existe nesta tela e no CSV."
   }
   Write-Host ""
-  Info "Teste a partir do servidor .1 ou do seu PC:"
+  Info "Teste a partir do servidor do NetMon ou do seu PC:"
   if ($nomeNovo) {
     # O dominio da credencial e o NOME DA MAQUINA, e ele muda no reboot.
     # Antes de reiniciar a conta e $nome\$Usuario; depois, $nomeNovo\$Usuario.
@@ -619,7 +619,7 @@ if (-not $Simular) {
     Write-Host "    Enter-PSSession -ComputerName $ip1 -Credential $nome\$Usuario" -ForegroundColor DarkGray
   }
   Info "Se der erro de TrustedHosts, rode NA MAQUINA DE ONDE VOCE CHAMA:"
-  Write-Host "    Set-Item WSMan:\localhost\Client\TrustedHosts -Value '192.168.2.*' -Concatenate -Force" -ForegroundColor DarkGray
+  Write-Host "    Set-Item WSMan:\localhost\Client\TrustedHosts -Value '$($prefixo)*' -Concatenate -Force" -ForegroundColor DarkGray
 }
 Write-Host ""
 Pausa "  Enter para fechar"

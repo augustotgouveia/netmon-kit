@@ -6,7 +6,7 @@ O servidor Windows que a empresa já tem vira o centro de vigilância da rede: r
 Wi-Fi, câmeras, estações e a VPS do sistema de vendas. Tudo aparece num painel web e o NetMon
 **avisa no Telegram, em português, só quando importa**.
 
-> Status: **v0.2, alfa.** Nasceu e roda há meses numa empresa real (~30 equipamentos, 1 servidor
+> Status: **v0.3, alfa.** Nasceu e roda há meses numa empresa real (~30 equipamentos, 1 servidor
 > Windows, roteador Cisco, 3 APs, DVRs, 10 estações, sistema de vendas numa VPS). Funciona, mas foi
 > moldado para aquele cenário. Ajuste para o seu e conte o que quebrou.
 
@@ -43,7 +43,26 @@ Licença **MIT**: use, adapte e venda serviço em cima à vontade; só mantenha 
 
 ---
 
-## Instalação (ordem que funciona)
+## Instalação rápida
+
+**Com um agente de IA (recomendado).** Baixe o kit no servidor, abra o Claude Code, o Codex ou outro
+agente de código na pasta e peça: *"instala o NetMon nesta rede"*. O [`AGENTS.md`](AGENTS.md) ensina o
+agente a descobrir a rede, entrevistar você, montar o `config.json` e rodar o instalador, com regras
+de segurança (senha nunca passa pelo chat, nada muda na rede sem o seu OK).
+
+**Pelo instalador.** Preencha `C:\netmon\config.json` a partir de `0-modelos\config.example.json` e, num
+PowerShell **como administrador**, na pasta do kit:
+
+```powershell
+.\INSTALAR.ps1 -Simular   # mostra o que faria, sem mudar nada
+.\INSTALAR.ps1            # testa o Telegram, cria tarefas e firewall, sobe tudo
+.\INSTALAR.ps1 -Remover   # desfaz (tarefas e firewall; arquivos ficam)
+```
+
+Os módulos ligam sozinhos conforme o que existir: sem roteador Cisco, sem DVR ou sem VPS, o que
+depende deles fica de fora.
+
+## Instalação manual (o que o instalador faz por baixo)
 
 1. **Levantamento** da rede (checklist abaixo).
 2. Copie o conteúdo das pastas `1-` a `5-` para `C:\netmon\` no servidor, junto com `python\`,
@@ -131,7 +150,8 @@ No piloto isso levou de **137 para 23 mensagens por dia**.
 ## Roadmap
 
 - [x] Tudo que é do cliente no `config.json` (v0.2)
-- [ ] `INSTALAR.ps1` único: pastas, tarefas, firewall e teste do Telegram
+- [x] `INSTALAR.ps1` único: pastas, tarefas, firewall e teste do Telegram (v0.3)
+- [x] Instalação guiada por agente de IA: `AGENTS.md` (v0.3)
 - [ ] Assistente de primeiro uso: varre a LAN e sugere nomes pelo fabricante
 - [ ] Módulos liga/desliga (sem Cisco, sem DVR, sem controladora...)
 - [ ] Outros roteadores: MikroTik, pfSense, roteador da operadora via SNMP

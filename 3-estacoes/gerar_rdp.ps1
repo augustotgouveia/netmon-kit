@@ -1,5 +1,5 @@
 # ============================================================================
-#  gerar_rdp.ps1 - cria os perfis de acesso RDP no servidor .1
+#  gerar_rdp.ps1 - cria os perfis de acesso RDP no servidor do NetMon
 #
 #  Roda NO SERVIDOR. Para cada estacao Pro do cofre gera:
 #     C:\netmon\rdp\<MAQUINA>.rdp   perfil de conexao (SEM senha dentro)
